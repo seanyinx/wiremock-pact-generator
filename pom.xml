@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.atlassian.pom</groupId>
+        <artifactId>central-pom</artifactId>
+        <version>4.0.27</version>
+    </parent>
+
+    <groupId>com.atlassian.ta</groupId>
+    <artifactId>wiremock-pact-generator</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <name>Wiremock Pact Generator</name>
+    <description>
+        Generation of Pact files from the live interactions of WireMock stubs.
+    </description>
+    <inceptionYear>2017</inceptionYear>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+    <issueManagement>
+        <system>Bitbucket</system>
+        <url>https://bitbucket.org/atlassian/wiremock-pact-generator/issues</url>
+    </issueManagement>
+    <scm>
+        <connection>scm:git:ssh://git@bitbucket.org/atlassian/wiremock-pact-generator.git</connection>
+        <developerConnection>scm:git:ssh://git@bitbucket.org/atlassian/wiremock-pact-generator.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://bitbucket.org/atlassian/wiremock-pact-generator</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>Ben Sayers</name>
+            <email>bsayers@atlassian.com</email>
+            <organization>Atlassian</organization>
+        </developer>
+        <developer>
+            <name>Sebastian Tello</name>
+            <email>stello@atlassian.com</email>
+            <organization>Atlassian</organization>
+        </developer>
+    </developers>
+
+    <properties>
+        <jdk.version>1.8</jdk.version>
+        <source.encoding>UTF-8</source.encoding>
+
+        <wiremock.version>2.7.1</wiremock.version>
+        <gson.version>2.8.1</gson.version>
+        <pact-jvm.version>3.5.3</pact-jvm.version>
+        <junit.version>4.12</junit.version>
+        <hamcrest.version>1.3</hamcrest.version>
+        <unirest.version>1.4.9</unirest.version>
+
+        <license-maven-plugin.version>1.9</license-maven-plugin.version>
+        <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
+        <checkstyle.version>7.5.1</checkstyle.version>
+    </properties>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>${wiremock.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${gson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>au.com.dius</groupId>
+            <artifactId>pact-jvm-provider-junit_2.11</artifactId>
+            <version>${pact-jvm.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>au.com.dius</groupId>
+            <artifactId>pact-jvm-provider_2.11</artifactId>
+            <version>${pact-jvm.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <version>${hamcrest.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.mashape.unirest</groupId>
+            <artifactId>unirest-java</artifactId>
+            <version>${unirest.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>${license-maven-plugin.version}</version>
+                <configuration>
+                    <licenseMerges>
+                        <licenseMerge>
+                            The Apache Software License, Version 2.0|
+                            Apache 2|Apache 2.0|Apache License 2.0|
+                            Apache 2.0 License|Apache License, Version 2.0|
+                            Apache Software License, version 2.0|
+                            Apache License Version 2.0|Apache|
+                            Apache Software License - Version 2.0
+                        </licenseMerge>
+                        <licenseMerge>
+                            The MIT License (MIT)|
+                            MIT License|The MIT License|MIT
+                        </licenseMerge>
+                        <licenseMerge>
+                            BSD 3-Clause|
+                            BSD|New BSD License
+                        </licenseMerge>
+                        <licenseMerge>
+                            Common Development and Distribution License (CDDL) v1.0|
+                            CDDL
+                        </licenseMerge>
+                        <licenseMerge>
+                            Lesser General Public License (LGPL), version 3|
+                            Lesser General Public License, version 3 or greater|LGPL v3
+                        </licenseMerge>
+                    </licenseMerges>
+                </configuration>
+            </plugin>
+<!--
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${maven-checkstyle-plugin.version}</version>
+                <configuration>
+                    <configLocation>checkstyle.xml</configLocation>
+                    <encoding>${source.encoding}</encoding>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>true</failsOnError>
+                    <linkXRef>false</linkXRef>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${checkstyle.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            -->
+        </plugins>
+    </build>
+
+</project>

@@ -1,6 +1,8 @@
-image: java:8
+image: maven:3.3.3
+
 pipelines:
   default:
     - step:
         script:
-          - bash ./gradlew clean test
+          - mvn --version
+          - mvn clean verify javadoc:jar
