@@ -57,6 +57,6 @@ Version bumped from 0.0.1 to 0.0.2
 
 3. Commit and push the changes.
 
-4. Once the changes are in master execute [this bamboo build](https://engservices-bamboo.internal.atlassian.com/browse/IM-WPC):
-
-
+4. Once the changes are in master 
+[this bamboo build](https://engservices-bamboo.internal.atlassian.com/browse/IM-WPC)
+will automatically run and publish the new version.
