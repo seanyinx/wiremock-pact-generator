@@ -50,10 +50,10 @@ For project admins only.
 
 2. Execute `bin/semver_bump.sh` passing either `major`, `minor`, or `patch` as argument. E.g.:
 
-```
-# bin/semver_bump.sh patch
-Version bumped from 0.0.1 to 0.0.2
-```
+    ```
+    # bin/semver_bump.sh patch
+    Version bumped from 0.0.1 to 0.0.2
+    ```
 
 3. Commit and push the changes.
 
