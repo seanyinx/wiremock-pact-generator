@@ -1,23 +1,32 @@
 package com.atlassian.ta.wiremockpactgenerator.models;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class PactResponse {
-    private int status;
-    private Map<String, String> headers;
-    private String body;
+    private final int status;
+    private final Map<String, String> headers;
+    private final String body;
 
-    public PactResponse(int status, Map<String, String> headers, String body) {
+    public PactResponse(final int status, final Map<String, String> headers, final String body) {
         this.status = status;
-        this.headers = headers;
+        this.headers = copyHeaders(headers);
         this.body = body;
     }
 
-    @Override
-    public int hashCode() {
-        int result = status;
-        result = 31 * result + (headers != null ? headers.hashCode() : 0);
-        result = 31 * result + (body != null ? body.hashCode() : 0);
-        return result;
+    public int getStatus() {
+        return status;
+    }
+
+    public Map<String, String> getHeaders() {
+        return copyHeaders(headers);
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    private Map<String, String> copyHeaders(final Map<String, String> headers) {
+        return headers == null || headers.isEmpty() ? null : new HashMap<>(headers);
     }
 }

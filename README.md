@@ -1,5 +1,4 @@
 # Wiremock Pact Generator
-
 Captures HTTP request/responses interactions with your WireMocks and generates Pact files so you
 can verify, via contract testing, that your mocks are consistent with the real provider.
 
@@ -18,7 +17,7 @@ Add the `wiremock-pact-generator` dependency.
 </dependency>
 ```
 
-**Gradle**: 
+**Gradle**:
 
 ```
 testCompile group: 'com.atlassian.ta', name: 'wiremock-pact-generator', version: '1.0-SNAPSHOT'
@@ -50,7 +49,6 @@ myClient.getResource("123")
 ```
 
 After running your tests, you'll find your pact files in the `[build|target]/pacts/` directory.
-
 
 ## Building and testing ##
 

@@ -1,29 +1,45 @@
 package com.atlassian.ta.wiremockpactgenerator.models;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class PactRequest {
-    private String method;
-    private String path;
-    private String query;
-    private Map<String, String> headers;
-    private String body;
+    private final String method;
+    private final String path;
+    private final String query;
+    private final Map<String, String> headers;
+    private final String body;
 
-    public PactRequest(String method, String path, String query, Map<String, String> headers, String body){
+    public PactRequest(final String method, final String path, final String query,
+                       final Map<String, String> headers, final String body) {
         this.method = method;
         this.path = path;
         this.query = query;
+        this.headers = copyHeaders(headers);
         this.body = body;
-        this.headers = headers;
     }
 
-    @Override
-    public int hashCode() {
-        int result = method.hashCode();
-        result = 31 * result + path.hashCode();
-        result = 31 * result + (query != null ? query.hashCode() : 0);
-        result = 31 * result + (headers != null ? headers.hashCode() : 0);
-        result = 31 * result + (body != null ? body.hashCode() : 0);
-        return result;
+    public String getMethod() {
+        return method;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public String getQuery() {
+        return query;
+    }
+
+    public Map<String, String> getHeaders() {
+        return copyHeaders(headers);
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    private Map<String, String> copyHeaders(final Map<String, String> headers) {
+        return headers == null || headers.isEmpty() ? null : new HashMap<>(headers);
     }
 }

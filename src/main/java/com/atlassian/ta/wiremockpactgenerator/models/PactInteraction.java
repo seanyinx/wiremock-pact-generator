@@ -1,21 +1,25 @@
 package com.atlassian.ta.wiremockpactgenerator.models;
 
 public class PactInteraction {
-    private PactRequest request;
-    private PactResponse response;
-    private String description;
+    private final String description;
+    private final PactRequest request;
+    private final PactResponse response;
 
-    public PactInteraction(String description, PactRequest request, PactResponse response){
+    public PactInteraction(final String description, final PactRequest request, final PactResponse response) {
         this.description = description;
         this.request = request;
         this.response = response;
     }
 
-    @Override
-    public int hashCode() {
-        int result = request.hashCode();
-        result = 31 * result + response.hashCode();
-        result = 31 * result + description.hashCode();
-        return result;
+    public PactResponse getResponse() {
+        return response;
+    }
+
+    public PactRequest getRequest() {
+        return request;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }

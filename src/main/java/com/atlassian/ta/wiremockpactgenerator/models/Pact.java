@@ -1,42 +1,33 @@
 package com.atlassian.ta.wiremockpactgenerator.models;
 
-import java.util.*;
+import com.google.common.collect.Lists;
+
+import java.util.List;
 
 public class Pact {
-    private String consumer;
-    private String provider;
-    private Map<Integer, PactInteraction> interactions;
-    private UUID id;
+    private final PactCollaborator consumer;
+    private final PactCollaborator provider;
+    private final List<PactInteraction> interactions;
 
-    public Pact(String consumer, String provider){
-        this.consumer = consumer;
-        this.provider = provider;
-        interactions = new HashMap<>();
-        id = UUID.randomUUID();
+    public List<PactInteraction> getInteractions() {
+        return Lists.newArrayList(interactions);
     }
 
-    public UUID getId() {
-        return id;
+    public Pact(final String consumerName, final String providerName) {
+        this.consumer = new PactCollaborator(consumerName);
+        this.provider = new PactCollaborator(providerName);
+        this.interactions = Lists.newArrayList();
     }
 
-    public synchronized boolean addInteraction(PactInteraction interaction){
-        int hash = interaction.hashCode();
-        if(interactions.containsKey(hash)){
-            return false;
-        }
-        interactions.put(hash, interaction);
-        return true;
+    public void addInteraction(final PactInteraction pactInteraction) {
+        interactions.add(pactInteraction);
     }
 
-    public String getConsumer() {
+    public PactCollaborator getConsumer() {
         return consumer;
     }
 
-    public String getProvider() {
+    public PactCollaborator getProvider() {
         return provider;
-    }
-
-    public List<PactInteraction> getInteractions() {
-        return new ArrayList<>(interactions.values());
     }
 }

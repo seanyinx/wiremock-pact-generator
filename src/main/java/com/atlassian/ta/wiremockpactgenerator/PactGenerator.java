@@ -1,90 +1,43 @@
 package com.atlassian.ta.wiremockpactgenerator;
 
-import com.atlassian.ta.wiremockpactgenerator.builders.OptionsBuilder;
 import com.atlassian.ta.wiremockpactgenerator.models.Pact;
 import com.atlassian.ta.wiremockpactgenerator.models.PactInteraction;
-import com.atlassian.ta.wiremockpactgenerator.models.PactRequest;
-import com.atlassian.ta.wiremockpactgenerator.models.PactResponse;
-import com.github.tomakehurst.wiremock.http.*;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactGeneratorToPactInteractionTransformer;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactSaver;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+public class PactGenerator {
+    private final Pact pact;
+    private final PactSaver pactSaver;
 
-
-public class PactGenerator implements RequestListener {
-    private Pact pact;
-    private Options options;
-
-    public PactGenerator(Options options){
-        this.options = options;
-        pact = new Pact(options.consumerName(), options.providerName());
+    public PactGenerator(final String consumerName, final String providerName, final PactSaver pactSaver) {
+        validateCollaboratorName(consumerName, "Consumer");
+        validateCollaboratorName(providerName, "Provider");
+        this.pactSaver = pactSaver;
+        pact = new Pact(consumerName, providerName);
     }
 
-    public PactGenerator(String consumer, String provider) {
-        this(new OptionsBuilder().withConsumerName(consumer).withProviderName(provider).build());
+    public void saveInteraction(final PactGeneratorRequest request, final PactGeneratorResponse response) {
+        validatePactResponse(response);
+
+        final PactInteraction pactInteraction = PactGeneratorToPactInteractionTransformer.transform(request, response);
+        pact.addInteraction(pactInteraction);
+        pactSaver.savePactFile(pact);
     }
 
-    @Override
-    public void requestReceived(Request request, Response response) {
-        boolean wasAdded = pact.addInteraction(
-            new PactInteraction("", toPactRequest(request), toPactResponse(response))
-        );
-
-        if(options.pactSaver().autoSave() && wasAdded){
-            doSave();
+    private void validatePactResponse(final PactGeneratorResponse response) {
+        final int status = response.getStatus();
+        if (status < 100 || status > 599) {
+            throw new WiremockPactGeneratorException(String.format("Response status code is not valid: %d", status));
         }
     }
 
-    public void save(){
-        if(!options.pactSaver().autoSave()){
-            doSave();
-        }
+    public String getPactLocation() {
+        return pactSaver.getPactLocation(pact);
     }
 
-    private void doSave(){
-        try {
-            options.pactSaver().save(options.pactSerializer().toJson(pact), pact);
+    private void validateCollaboratorName(final String name, final String collaborator) {
+        if (name == null || name.trim().length() == 0) {
+            throw new WiremockPactGeneratorException(String.format("%s name can't be null or blank", collaborator));
         }
-        catch (IOException error) {
-            throw new RuntimeException("Unable to save generated pact file", error);
-        }
-    }
-
-    private Map<String, String> parseHeaders(HttpHeaders wiremockHeaders) {
-        Map<String, String> headers = new HashMap<>();
-        for (HttpHeader header : wiremockHeaders.all()){
-            String key = header.caseInsensitiveKey().value().toLowerCase(Locale.ENGLISH);
-            String value = String.join(",", header.values());
-            headers.put(key, value);
-        }
-        return headers;
-    }
-
-    private PactRequest toPactRequest(Request wiremockRequest){
-        String method = wiremockRequest.getMethod().value();
-        String body = wiremockRequest.getBodyAsString();
-        String path;
-        String query;
-        try {
-            URL url = new URL(wiremockRequest.getAbsoluteUrl());
-            path = url.getPath();
-            query = url.getQuery();
-        } catch (MalformedURLException e) {
-            path = "/";
-            query = null;
-        }
-
-        Map<String, String> headers = parseHeaders(wiremockRequest.getHeaders());
-        return new PactRequest(method, path, query, headers, body);
-    }
-
-    private PactResponse toPactResponse(Response wiremockResponse){
-        return new PactResponse(wiremockResponse.getStatus(),
-                parseHeaders(wiremockResponse.getHeaders()),
-                wiremockResponse.getBodyAsString());
     }
 }
