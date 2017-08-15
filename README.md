@@ -1,75 +1,64 @@
-# Wiremock Pact Generator
-Captures HTTP request/responses interactions with your WireMocks and generates Pact files so you
-can verify, via contract testing, that your mocks are consistent with the real provider.
+# WireMock Pact Generator
+> Captures HTTP request/responses interactions with your WireMocks and generates Pact files so you
+> can verify, via contract testing, that your mocks are consistent with the real provider.
 
-## Getting started
+## What is Wiremock Pact Generator
+- A WireMock listener that plugs into existing WireMock instances.
+- Will capture every request and response made to a WireMock server and save them in Pact format.
+
+## Requirements
+- Java 1.8 or higher
+- WireMock 2.7.1 or higher
+
+## Installation
 
 Add the `wiremock-pact-generator` dependency.
 
-**Maven**:
+### Maven
 
 ```xml
 <dependency>
     <groupId>com.atlassian.ta</groupId>
     <artifactId>wiremock-pact-generator</artifactId>
-    <version>1.0-SNAPSHOT</version>
     <scope>test</scope>
 </dependency>
 ```
 
-**Gradle**:
+### Gradle
 
 ```
-testCompile group: 'com.atlassian.ta', name: 'wiremock-pact-generator', version: '1.0-SNAPSHOT'
+testCompile group: 'com.atlassian.ta', name: 'wiremock-pact-generator'
 ```
-
 
 ## Usage
-
-All you need to do is add the `PactGenerator` listener to your Wiremock server, specifying who the consumer and the
-provider are:
+Add the `PactGenerator` listener to your WireMock server, specifying who the consumer and the provider are.
 
 ```java
 
-// 1. Create your wiremock server
+// 1. Create your WireMock server
 wireMockServer = new WireMockServer(...options);
 
-// 2. Add the Wiremock2Pact listener
+// 2. Add the WireMockPactGenerator listener
 wireMockServer.addMockServiceRequestListener(
-        new PactGenerator("the-consumer", "the-provider")
+    new WireMockPactGenerator("the-consumer", "the-provider")
 );
 
 // 3. That's it!.. create your endpoint stubs and use them.
-
 wireMockServer.addStubMapping(get(urlEqualTo("/path/resource/123"))
                 .willReturn(aResponse().withStatus(200))
-                .build());
+                .build()
+);
 ...
 myClient.getResource("123")
 ```
 
-After running your tests, you'll find your pact files in the `[build|target]/pacts/` directory.
+After running your tests, Maven users will find pact files in the `target/pacts` directory and Gradle users will find pact files in the `build/pacts` directory.
 
-## Building and testing ##
+## Changelog
+See [CHANGELOG.md](CHANGELOG.md)
 
-The project uses Maven 3.3+. We recommend using [mvnvm](http://mvnvm.org/) or similar.
+## Contributing
+See [CONTRIBUTING.md](CONTRIBUTING.md)
 
-To build the project:
-
-```
->> mvn clean install
-```
-
-To run the project tests:
-
-```
->> mvn test
-```
-
-## Contributing ##
-
-Find the guide for contributors [here](CONTRIBUTING.md).
-
-## License ##
-
-Copyright (c) 2017 Atlassian and others. Apache 2.0 licensed, see LICENSE.txt file.
+## License
+See [LICENSE.txt](LICENSE.txt)
