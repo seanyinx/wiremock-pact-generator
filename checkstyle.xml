@@ -4,10 +4,6 @@
         "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
 
 <module name="Checker">
-    <module name="BeforeExecutionExclusionFileFilter">
-        <property name="fileNamePattern" value=".*/old/.*"/>
-    </module>
-
     <property name="charset" value="UTF-8"/>
     <module name="SuppressionCommentFilter"/>
     <module name="FileLength">
