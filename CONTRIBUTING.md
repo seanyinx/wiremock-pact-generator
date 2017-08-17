@@ -38,17 +38,20 @@ Commits to this codebase should follow the [conventional changelog conventions](
 
 ## Releasing a new version
 
-1. Decide whether the next version will be major, minor, or patch release according to
+1. Ensure you are on the master branch
+
+2. Decide whether the next version will be major, minor, or patch release according to
 [Semantic Versioning](http://semver.org/).
 
-2. Execute `bin/semver_bump.sh` passing either `major`, `minor`, or `patch` as argument.
+3. Execute `bin/semver_bump.sh` passing either `major`, `minor`, or `patch` as argument.
 
 ```
 # bin/semver_bump.sh patch
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 Version bumped from 0.0.1 to 0.0.2
 ```
 
-3. Commit and push the changes.
+3. The new version will be automatically committed. Push the changes.
 
 4. Once the changes are in master they will automatically be published by the following bamboo build:
 [https://engservices-bamboo.internal.atlassian.com/browse/IM-WPC](https://engservices-bamboo.internal.atlassian.com/browse/IM-WPC)

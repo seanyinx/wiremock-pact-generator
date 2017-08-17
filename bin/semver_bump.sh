@@ -44,4 +44,7 @@ esac
 new_version="${a[0]}.${a[1]}.${a[2]}"
 echo "${new_version}" > $DIR/version_to_release
 
+git add $DIR/version_to_release
+git commit -m "chore: bump version to $new_version"
+
 echo "Version bumped from $version to $new_version"
