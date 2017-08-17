@@ -10,10 +10,10 @@ if ! [[ $version =~ $format ]]; then
     exit 1
 fi
 
-echo "Preparing release of wiremock-pact-generator-$version"
+echo "Preparing release of wiremock-pact-generator v$version"
 
 mvn --version
-mvn --batch-mode release:prepare -Dtag=wiremock-pact-generator-${version} -DreleaseVersion=${version}
+mvn --batch-mode release:prepare -Dtag=v${version} -DreleaseVersion=${version}
 
 if [ $? -eq 0 ]; then
     set -e
