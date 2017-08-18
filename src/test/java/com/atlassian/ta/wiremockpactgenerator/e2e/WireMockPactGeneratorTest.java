@@ -1,5 +1,6 @@
 package com.atlassian.ta.wiremockpactgenerator.e2e;
 
+import com.atlassian.ta.wiremockpactgenerator.json.GsonInstance;
 import com.atlassian.ta.wiremockpactgenerator.WireMockPactGenerator;
 import com.atlassian.ta.wiremockpactgenerator.models.Pact;
 import com.atlassian.ta.wiremockpactgenerator.models.PactInteraction;
@@ -14,7 +15,6 @@ import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
-import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
@@ -121,10 +121,10 @@ public class WireMockPactGeneratorTest {
         assertThat("interaction.request.method", request.getMethod(), equalTo("POST"));
         assertThat("interaction.request.path", request.getPath(), equalTo("/path/resource"));
         assertThat("interaction.request.query", request.getQuery(), equalTo("foo=bar"));
-        assertThat("interaction.request.body", request.getBody(), equalTo("request body"));
+        assertThat("interaction.request.body", request.getBody().getValue(), equalTo("request body"));
         assertThat("interaction.request.headers.accept", requestHeaders.get("accept"), equalTo("text/plain"));
         assertThat("interaction.response.status", response.getStatus(), equalTo(200));
-        assertThat("interaction.response.body", response.getBody(), equalTo("response body"));
+        assertThat("interaction.response.body", response.getBody().getValue(), equalTo("response body"));
         assertThat("interaction.response.headers.content-type", responseHeaders.get("content-type"), equalTo("text/plain"));
         assertThat("interaction.response.headers.x-header", responseHeaders.get("x-header"), equalTo("one, two"));
     }
@@ -174,7 +174,7 @@ public class WireMockPactGeneratorTest {
         } catch (final FileNotFoundException e) {
             throw new RuntimeException("Failed to load pact", e);
         }
-        return new Gson().fromJson(reader, Pact.class);
+        return GsonInstance.gson.fromJson(reader, Pact.class);
     }
 
     private void withWireMock(final WireMockContext action) {

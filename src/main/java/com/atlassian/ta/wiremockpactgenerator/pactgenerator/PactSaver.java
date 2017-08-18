@@ -2,9 +2,9 @@ package com.atlassian.ta.wiremockpactgenerator.pactgenerator;
 
 import com.atlassian.ta.wiremockpactgenerator.FileSystem;
 import com.atlassian.ta.wiremockpactgenerator.WiremockPactGeneratorException;
+import com.atlassian.ta.wiremockpactgenerator.json.GsonInstance;
 import com.atlassian.ta.wiremockpactgenerator.models.Pact;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import java.text.Normalizer;
 import java.util.regex.Pattern;
@@ -12,15 +12,11 @@ import java.util.regex.Pattern;
 public class PactSaver {
     private static final Pattern NON_ALPHANUMERIC = Pattern.compile("[^\\w-]");
 
-    private final Gson gson;
+    private final Gson gson = GsonInstance.gson;
     private final FileSystem fileSystem;
 
     public PactSaver(final FileSystem fileSystem) {
         this.fileSystem = fileSystem;
-        gson = new GsonBuilder()
-                .disableHtmlEscaping()
-                .setPrettyPrinting()
-                .create();
     }
 
     public String getPactLocation(final Pact pact) {

@@ -6,12 +6,12 @@ import java.util.Map;
 public class PactResponse {
     private final int status;
     private final Map<String, String> headers;
-    private final String body;
+    private final PactHttpBody body;
 
     public PactResponse(final int status, final Map<String, String> headers, final String body) {
         this.status = status;
         this.headers = copyHeaders(headers);
-        this.body = body;
+        this.body = new PactHttpBody(body);
     }
 
     public int getStatus() {
@@ -22,7 +22,7 @@ public class PactResponse {
         return copyHeaders(headers);
     }
 
-    public String getBody() {
+    public PactHttpBody getBody() {
         return body;
     }
 
