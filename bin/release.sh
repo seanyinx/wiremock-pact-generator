@@ -1,24 +1,40 @@
 #!/usr/bin/env bash
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-version=`cat $DIR/version_to_release`
+commit_prefix="chore: [release] "
 
-format="^[0-9]+\\.[0-9]+\\.[0-9]+$"
+function get_release_version {
+    DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    version=`jq -r .version $DIR/next_version.json`
 
-if ! [[ $version =~ $format ]]; then
-    echo "Invalid format in release version: $version"
+    format="^[0-9]+\\.[0-9]+\\.[0-9]+$"
+
+    if ! [[ $version =~ $format ]]; then
+        echo "Invalid format in release version: $version"
+        exit 1
+    fi
+}
+
+function prepare_release {
+    echo "Preparing release of wiremock-pact-generator v$version"
+    mvn --batch-mode release:prepare -Dtag=v${version} -DreleaseVersion=${version} \
+        -DscmCommentPrefix="$commit_prefix"
+}
+
+function rollback {
+    echo "Rolling back changes"
+    echo mvn release:rollback
     exit 1
-fi
+}
 
-echo "Preparing release of wiremock-pact-generator v$version"
+function perform_release {
+    echo "Performing release of wiremock-pact-generator v$version"
+    echo mvn release:perform
+}
 
-mvn --version
-mvn --batch-mode release:prepare -Dtag=v${version} -DreleaseVersion=${version}
+function main {
+    get_release_version
+    prepare_release || rollback
+    perform_release || rollback
+}
 
-if [ $? -eq 0 ]; then
-    set -e
-    mvn release:perform
-else
-    mvn release:rollback
-    exit 1
-fi
+main

@@ -4,4 +4,6 @@ out/
 target/
 .gradle/
 .idea/
+node/
+node_modules/
 *.iml

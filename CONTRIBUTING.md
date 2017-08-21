@@ -51,7 +51,8 @@ Commits to this codebase should follow the [conventional changelog conventions](
 Version bumped from 0.0.1 to 0.0.2
 ```
 
-3. The new version will be automatically committed. Push the changes.
+3. The new version, the updated `CHANGELOG.md`, and updated `THIRD-PARTY.txt` will be automatically committed.
+Push the changes.
 
 4. Once the changes are in master they will automatically be published by the following bamboo build:
 [https://engservices-bamboo.internal.atlassian.com/browse/IM-WPC](https://engservices-bamboo.internal.atlassian.com/browse/IM-WPC)
