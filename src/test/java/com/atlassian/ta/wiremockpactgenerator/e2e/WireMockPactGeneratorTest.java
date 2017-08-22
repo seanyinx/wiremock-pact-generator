@@ -1,11 +1,12 @@
 package com.atlassian.ta.wiremockpactgenerator.e2e;
 
-import com.atlassian.ta.wiremockpactgenerator.json.GsonInstance;
 import com.atlassian.ta.wiremockpactgenerator.WireMockPactGenerator;
 import com.atlassian.ta.wiremockpactgenerator.models.Pact;
+import com.atlassian.ta.wiremockpactgenerator.models.PactHttpBody;
 import com.atlassian.ta.wiremockpactgenerator.models.PactInteraction;
 import com.atlassian.ta.wiremockpactgenerator.models.PactRequest;
 import com.atlassian.ta.wiremockpactgenerator.models.PactResponse;
+import com.atlassian.ta.wiremockpactgenerator.support.PactHttpBodyDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
@@ -15,6 +16,7 @@ import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
+import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
@@ -174,7 +176,10 @@ public class WireMockPactGeneratorTest {
         } catch (final FileNotFoundException e) {
             throw new RuntimeException("Failed to load pact", e);
         }
-        return GsonInstance.gson.fromJson(reader, Pact.class);
+        return new GsonBuilder()
+                .registerTypeAdapter(PactHttpBody.class, new PactHttpBodyDeserializer())
+                .create()
+                .fromJson(reader, Pact.class);
     }
 
     private void withWireMock(final WireMockContext action) {

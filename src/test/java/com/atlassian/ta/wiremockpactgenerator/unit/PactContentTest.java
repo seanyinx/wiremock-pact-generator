@@ -1,12 +1,18 @@
 package com.atlassian.ta.wiremockpactgenerator.unit;
 
+import com.atlassian.ta.wiremockpactgenerator.FileSystem;
 import com.atlassian.ta.wiremockpactgenerator.PactGeneratorRequest;
 import com.atlassian.ta.wiremockpactgenerator.PactGeneratorResponse;
 import com.atlassian.ta.wiremockpactgenerator.WiremockPactGeneratorException;
-import com.atlassian.ta.wiremockpactgenerator.models.PactRequest;
-import com.atlassian.ta.wiremockpactgenerator.models.PactResponse;
 import com.atlassian.ta.wiremockpactgenerator.support.HeadersBuilder;
+import com.atlassian.ta.wiremockpactgenerator.support.InteractionBuilder;
+import com.atlassian.ta.wiremockpactgenerator.support.PactSpy;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.List;
 import java.util.Map;
@@ -17,334 +23,396 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 
-public class PactContentTest extends BasePactGeneratorTest {
+public class PactContentTest {
     /* missing test cases
-        - add tests for factory instance management
         - windows and slashes
      */
 
+    @Mock
+    private FileSystem fileSystem;
+
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
+
+    private InteractionBuilder interactionBuilder;
+    private PactSpy pactSpy;
+
+    @Before
+    public void beforeEach() {
+        MockitoAnnotations.initMocks(this);
+        interactionBuilder = new InteractionBuilder(fileSystem);
+        pactSpy = new PactSpy(fileSystem);
+    }
+
     @Test
     public void shouldIncludeTheConsumerName() {
-        whenTheInteractionIsInvoked("consumer-name", "provider-name");
+        interactionBuilder
+                .withConsumer("consumer-name")
+                .perform();
 
-        assertThat(getSavedPact().getConsumer().getName(), equalTo("consumer-name"));
+        assertThat(pactSpy.consumerName(), equalTo("consumer-name"));
     }
 
     @Test
     public void shouldIncludeTheProviderName() {
-        whenTheInteractionIsInvoked("consumer-name", "provider-name");
+        interactionBuilder
+                .withProvider("provider-name")
+                .perform();
 
-        assertThat(getSavedPact().getProvider().getName(), equalTo("provider-name"));
+        assertThat(pactSpy.providerName(), equalTo("provider-name"));
     }
 
     @Test
     public void shouldFailIfConsumerNameIsNull() throws WiremockPactGeneratorException {
         expectAWiremockPactGeneratorException("Consumer name can't be null or blank");
 
-        whenPactGeneratorIsCreated(null, "provider-name");
+        interactionBuilder
+                .withConsumer(null)
+                .perform();
     }
 
     @Test
     public void shouldFailIfConsumerNameIsBlank() throws WiremockPactGeneratorException {
         expectAWiremockPactGeneratorException("Consumer name can't be null or blank");
 
-        whenPactGeneratorIsCreated(" ", "provider-name");
+        interactionBuilder
+                .withConsumer(" ")
+                .perform();
     }
 
     @Test
     public void shouldFailIfProviderNameIsNull() throws WiremockPactGeneratorException {
         expectAWiremockPactGeneratorException("Provider name can't be null or blank");
 
-        whenPactGeneratorIsCreated("consumer-name", null);
+        interactionBuilder
+                .withProvider(null)
+                .perform();
     }
 
     @Test
     public void shouldFailIfProviderNameIsBlank() throws WiremockPactGeneratorException {
         expectAWiremockPactGeneratorException("Provider name can't be null or blank");
 
-        whenPactGeneratorIsCreated("consumer-name", "   ");
+        interactionBuilder
+                .withProvider(" ")
+                .perform();
     }
 
     @Test
     public void shouldCaptureTheRequestMethod() {
-        final PactGeneratorRequest request = aDefaultRequest()
-                .withMethod("POST")
-                .build();
+        interactionBuilder
+                .withRequest(
+                        aDefaultRequest()
+                                .withMethod("POST")
+                                .build()
+                )
+                .perform();
 
-        whenTheInteractionIsInvoked(request);
-
-        assertThat(getFirstSavedInteraction().getRequest().getMethod(), equalTo("POST"));
+        assertThat(pactSpy.firstRequestMethod(), equalTo("POST"));
     }
 
     @Test
     public void shouldCaptureTheRequestPath() {
-        final PactGeneratorRequest request = aDefaultRequest()
-                .withUrl("/some/path")
-                .build();
+        interactionBuilder
+                .withRequest(
+                        aDefaultRequest()
+                                .withUrl("/some/path")
+                                .build()
+                )
+                .perform();
 
-        whenTheInteractionIsInvoked(request);
-
-        assertThat(getFirstSavedInteraction().getRequest().getPath(), equalTo("/some/path"));
+        assertThat(pactSpy.firstRequestPath(), equalTo("/some/path"));
     }
 
     @Test
     public void shouldCaptureTheRequestQueryString() {
-        final PactGeneratorRequest request = aDefaultRequest()
-                .withUrl("/path?query=string&foo=bar")
-                .build();
+        interactionBuilder
+                .withRequest(
+                        aDefaultRequest()
+                                .withUrl("/path?query=string&foo=bar")
+                                .build()
+                )
+                .perform();
 
-        whenTheInteractionIsInvoked(request);
-
-        assertThat(getFirstSavedInteraction().getRequest().getQuery(), equalTo("query=string&foo=bar"));
+        assertThat(pactSpy.firstRequestQuery(), equalTo("query=string&foo=bar"));
     }
 
     @Test
     public void shouldNotIncludeQueryProperty_whenUrlHasNoQuery() {
-        final PactGeneratorRequest request = aDefaultRequest()
-                .withUrl("/path")
-                .build();
+        interactionBuilder
+                .withRequest(
+                        aDefaultRequest()
+                                .withUrl("/path")
+                                .build()
+                )
+                .perform();
 
-        whenTheInteractionIsInvoked(request);
-
-        assertThat(getRawSavedPact(), not(containsString("\"query\":")));
+        assertThat(pactSpy.jsonPact(), not(containsString("\"query\":")));
     }
 
     @Test
     public void shouldNotIncludeQueryAsPartOfTheRequestPathInThePactFile() {
-        final PactGeneratorRequest request = aDefaultRequest()
-                .withUrl("/path?query=string")
-                .build();
+        interactionBuilder
+                .withRequest(
+                        aDefaultRequest()
+                                .withUrl("/path?query=string")
+                                .build()
+                )
+                .perform();
 
-        whenTheInteractionIsInvoked(request);
-
-        assertThat(getFirstSavedInteraction().getRequest().getPath(), equalTo("/path"));
+        assertThat(pactSpy.firstRequestPath(), equalTo("/path"));
     }
 
     @Test
     public void shouldFail_whenResponseStatusIsTooLow() {
         expectAWiremockPactGeneratorException("Response status code is not valid: 99");
-        whenTheInteractionIsInvoked(
-                aDefaultResponse()
-                        .withStatus(99)
-                        .build()
-        );
+        interactionBuilder
+                .withResponse(
+                        aDefaultResponse()
+                                .withStatus(99)
+                                .build()
+                )
+                .perform();
     }
 
     @Test
     public void shouldFail_whenResponseStatusIsTooHigh() {
         expectAWiremockPactGeneratorException("Response status code is not valid: 600");
-        whenTheInteractionIsInvoked(
-                aDefaultResponse()
-                        .withStatus(600)
-                        .build()
-        );
+        interactionBuilder
+                .withResponse(
+                        aDefaultResponse()
+                                .withStatus(600)
+                                .build()
+                )
+                .perform();
     }
 
     @Test
     public void shouldCaptureRequestHeaders() {
-        whenTheInteractionIsInvoked(
+        interactionBuilder
+            .withRequest(
                 aDefaultRequest()
-                        .withHeaders(
-                                new HeadersBuilder()
-                                        .withHeader("accept", "application/json")
-                                        .withHeader("x-header", "value")
-                                        .build()
-                        )
-                        .build()
-        );
+                    .withHeaders(
+                        new HeadersBuilder()
+                            .withHeader("accept", "application/json")
+                            .withHeader("x-header", "value")
+                            .build()
+                    )
+                    .build()
+            )
+            .perform();
 
-        final Map<String, String> requestHeaders = getFirstSavedInteraction().getRequest().getHeaders();
+        final Map<String, String> requestHeaders = pactSpy.firstRequestHeaders();
         assertThat(requestHeaders.values(), hasSize(2));
         assertThat(requestHeaders.get("accept"), equalTo("application/json"));
         assertThat(requestHeaders.get("x-header"), equalTo("value"));
     }
 
     @Test
-    public void shouldProvideImmutableHeadersInThePactRequestModel() {
-        whenTheInteractionIsInvoked(
-                aDefaultRequest()
-                        .withHeaders(singleHeader("accept", "application/json"))
-                        .build()
-        );
-        final PactRequest pactRequest = getFirstSavedInteraction().getRequest();
-        pactRequest.getHeaders().put("accept", "text/html");
-
-        assertThat(pactRequest.getHeaders().get("accept"), equalTo("application/json"));
-    }
-
-    @Test
     public void shouldNormalizeRequestHeaderNames() {
-        whenTheInteractionIsInvoked(
-                aDefaultRequest()
-                        .withHeaders(singleHeader("x-HeaDer-NAMe", "some value"))
-                        .build()
-        );
+        interactionBuilder
+                .withRequest(
+                        aDefaultRequest()
+                                .withHeaders(singleHeader("x-HeaDer-NAMe", "some value"))
+                                .build()
+                )
+                .perform();
 
-        final Map<String, String> requestHeaders = getFirstSavedInteraction().getRequest().getHeaders();
+        final Map<String, String> requestHeaders = pactSpy.firstRequestHeaders();
         assertThat(requestHeaders.values(), hasSize(1));
         assertThat(requestHeaders.get("x-header-name"), equalTo("some value"));
     }
 
     @Test
     public void shouldCombineMultipleRequestHeadersValues() {
-        whenTheInteractionIsInvoked(
-                aDefaultRequest()
-                        .withHeaders(singleHeader("x-header", "value 1", "value 2", "value 3"))
-                        .build()
-        );
+        interactionBuilder
+                .withRequest(
+                        aDefaultRequest()
+                                .withHeaders(singleHeader("x-header", "value 1", "value 2", "value 3"))
+                                .build()
+                )
+                .perform();
 
-        final Map<String, String> requestHeaders = getFirstSavedInteraction().getRequest().getHeaders();
+        final Map<String, String> requestHeaders = pactSpy.firstRequestHeaders();
         assertThat(requestHeaders.values(), hasSize(1));
         assertThat(requestHeaders.get("x-header"), equalTo("value 1, value 2, value 3"));
     }
 
     @Test
     public void shouldNotSetRequestOrResponseHeadersProperty_WhenThereAreNoHeaders() {
-        whenTheInteractionIsInvoked(
-                aDefaultRequest()
-                        .withHeaders(null)
-                        .build(),
-                aDefaultResponse()
-                        .withHeaders(null)
-                        .build());
+        interactionBuilder
+                .withRequest(
+                        aDefaultRequest()
+                                .withHeaders(null)
+                                .build())
+                .withResponse(
+                        aDefaultResponse()
+                                .withHeaders(null)
+                                .build()
+                )
+                .perform();
 
-        assertThat(getRawSavedPact(), not(containsString("\"headers\":")));
+        assertThat(pactSpy.jsonPact(), not(containsString("\"headers\":")));
     }
 
     @Test
     public void shouldCaptureTheRequestBody() {
-        whenTheInteractionIsInvoked(
-                aDefaultRequest()
-                        .withBody("the request body")
-                        .build()
-        );
+        interactionBuilder
+                .withRequest(
+                        aDefaultRequest()
+                                .withBody("the request body")
+                                .build()
+                )
+                .perform();
 
-        assertThat(getFirstSavedInteraction().getRequest().getBody().getValue(), equalTo("the request body"));
+        assertThat(pactSpy.firstRequestBody(), equalTo("the request body"));
     }
 
     @Test
     public void shouldNotSetRequestOrResponseBodyProperty_WhenBodyIsEmpty() {
-        whenTheInteractionIsInvoked(
-                aDefaultRequest()
-                        .withBody("")
-                        .build(),
-                aDefaultResponse()
-                        .withBody("")
-                        .build()
-        );
+        interactionBuilder
+                .withRequest(
+                        aDefaultRequest()
+                                .withBody("")
+                                .build()
+                )
+                .withResponse(
+                        aDefaultResponse()
+                                .withBody("")
+                                .build()
+                )
+                .perform();
 
-        assertThat(getRawSavedPact(), not(containsString("\"body\":")));
+        assertThat(pactSpy.jsonPact(), not(containsString("\"body\":")));
     }
 
     @Test
     public void shouldCaptureTheResponseStatusCode() {
-        whenTheInteractionIsInvoked(
-                aDefaultResponse()
-                        .withStatus(202)
-                        .build()
-        );
+        interactionBuilder
+                .withResponse(
+                        aDefaultResponse()
+                                .withStatus(202)
+                                .build()
+                )
+                .perform();
 
-        assertThat(getFirstSavedInteraction().getResponse().getStatus(), equalTo(202));
+        assertThat(pactSpy.firstResponseStatus(), equalTo(202));
     }
 
     @Test
     public void shouldCaptureResponseHeaders() {
-        whenTheInteractionIsInvoked(
-                aDefaultResponse()
-                        .withHeaders(
-                                new HeadersBuilder()
-                                        .withHeader("content-type", "application/json")
-                                        .withHeader("x-header", "value")
-                                        .build()
-                        )
-                        .build()
-        );
+        interactionBuilder
+                .withResponse(
+                        aDefaultResponse()
+                                .withHeaders(
+                                        new HeadersBuilder()
+                                                .withHeader("content-type", "application/json")
+                                                .withHeader("x-header", "value")
+                                                .build()
+                                )
+                                .build()
+                )
+                .perform();
 
-        final Map<String, String> responseHeaders = getFirstSavedInteraction().getResponse().getHeaders();
+        final Map<String, String> responseHeaders = pactSpy.firstResponseHeaders();
         assertThat(responseHeaders.values(), hasSize(2));
         assertThat(responseHeaders.get("content-type"), equalTo("application/json"));
         assertThat(responseHeaders.get("x-header"), equalTo("value"));
     }
 
     @Test
-    public void shouldProvideImmutableHeadersInThePactResponseModel() {
-        whenTheInteractionIsInvoked(
-                aDefaultResponse()
-                        .withHeaders(singleHeader("content-type", "application/json"))
-                        .build()
-        );
-        final PactResponse pactResponse = getFirstSavedInteraction().getResponse();
-        pactResponse.getHeaders().put("content-type", "text/html");
-
-        assertThat(pactResponse.getHeaders().get("content-type"), equalTo("application/json"));
-    }
-
-    @Test
     public void shouldNormalizeResponseHeaderNames() {
-        whenTheInteractionIsInvoked(
-                aDefaultResponse()
-                        .withHeaders(singleHeader("x-HeaDer-NAMe", "some value"))
-                        .build()
-        );
+        interactionBuilder
+                .withResponse(
+                        aDefaultResponse()
+                                .withHeaders(singleHeader("x-HeaDer-NAMe", "some value"))
+                                .build()
+                )
+                .perform();
 
-        final Map<String, String> responseHeaders = getFirstSavedInteraction().getResponse().getHeaders();
+        final Map<String, String> responseHeaders = pactSpy.firstResponseHeaders();
         assertThat(responseHeaders.values(), hasSize(1));
         assertThat(responseHeaders.get("x-header-name"), equalTo("some value"));
     }
 
     @Test
     public void shouldCombineMultipleResponseHeadersValues() {
-        whenTheInteractionIsInvoked(
-                aDefaultResponse()
-                        .withHeaders(singleHeader("x-header", "value 1", "value 2", "value 3"))
-                        .build()
-        );
+        interactionBuilder
+                .withResponse(
+                        aDefaultResponse()
+                                .withHeaders(singleHeader("x-header", "value 1", "value 2", "value 3"))
+                                .build()
+                )
+                .perform();
 
-        final Map<String, String> responseHeaders = getFirstSavedInteraction().getResponse().getHeaders();
+        final Map<String, String> responseHeaders = pactSpy.firstResponseHeaders();
         assertThat(responseHeaders.values(), hasSize(1));
         assertThat(responseHeaders.get("x-header"), equalTo("value 1, value 2, value 3"));
     }
 
     @Test
     public void shouldCaptureTheResponseBody() {
-        whenTheInteractionIsInvoked(
-                aDefaultResponse()
-                        .withBody("the response body")
-                        .build()
-        );
+        interactionBuilder
+                .withResponse(
+                        aDefaultResponse()
+                                .withBody("the response body")
+                                .build()
+                )
+                .perform();
 
-        assertThat(getFirstSavedInteraction().getResponse().getBody().getValue(), equalTo("the response body"));
+        assertThat(pactSpy.firstResponseBody(), equalTo("the response body"));
     }
 
     @Test
     public void shouldIncludeTheInteractionDescription() {
-        final PactGeneratorRequest request = aDefaultRequest()
-                .withMethod("GET")
-                .withUrl("/path")
-                .build();
-        final PactGeneratorResponse response = aDefaultResponse()
-                .withStatus(202)
-                .build();
+        interactionBuilder
+                .withRequest(
+                        aDefaultRequest()
+                                .withMethod("GET")
+                                .withUrl("/path")
+                                .build()
+                )
+                .withResponse(
+                        aDefaultResponse()
+                                .withStatus(202)
+                                .build()
+                )
+                .perform();
 
-        whenTheInteractionIsInvoked(request, response);
-
-        assertThat(getFirstSavedInteraction().getDescription(), equalTo("GET /path -> 202"));
+        assertThat(pactSpy.firstInteractionDescription(), equalTo("GET /path -> 202"));
     }
 
     @Test
     public void shouldNormalizeTheRequestMethodAsUpperCase() {
-        whenTheInteractionIsInvoked(
+        interactionBuilder.withRequest(
                 aDefaultRequest()
                         .withMethod("get")
                         .build()
-        );
+        )
+                .perform();
 
-        assertThat(getFirstSavedInteraction().getRequest().getMethod(), equalTo("GET"));
+        assertThat(pactSpy.firstRequestMethod(), equalTo("GET"));
     }
 
-    private Map<String, List<String>> singleHeader(final String name, final String ...values) {
+    private Map<String, List<String>> singleHeader(final String name, final String... values) {
         return new HeadersBuilder()
                 .withHeader(name, values)
                 .build();
+    }
+
+    private PactGeneratorRequest.Builder aDefaultRequest() {
+        return new PactGeneratorRequest.Builder()
+                .withMethod("GET")
+                .withUrl("/path");
+    }
+
+    private PactGeneratorResponse.Builder aDefaultResponse() {
+        return new PactGeneratorResponse.Builder()
+                .withStatus(200);
+    }
+
+    private void expectAWiremockPactGeneratorException(final String message) {
+        expectedException.expect(WiremockPactGeneratorException.class);
+        expectedException.expectMessage(message);
     }
 }

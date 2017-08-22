@@ -13,7 +13,6 @@ public class GsonInstance {
 
     public static Gson gson = new GsonBuilder()
             .registerTypeAdapter(PactHttpBody.class, new PactHttpBodySerializer())
-            .registerTypeAdapter(PactHttpBody.class, new PactHttpBodyDeserializer())
             .registerTypeAdapter(PactRequest.class, new PactRequestSerializer())
             .registerTypeAdapter(PactResponse.class, new PactResponseSerializer())
             .disableHtmlEscaping()

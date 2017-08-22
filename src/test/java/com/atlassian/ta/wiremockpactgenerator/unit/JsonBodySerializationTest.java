@@ -1,12 +1,18 @@
 package com.atlassian.ta.wiremockpactgenerator.unit;
 
+import com.atlassian.ta.wiremockpactgenerator.FileSystem;
 import com.atlassian.ta.wiremockpactgenerator.PactGeneratorRequest;
+import com.atlassian.ta.wiremockpactgenerator.PactGeneratorResponse;
+import com.atlassian.ta.wiremockpactgenerator.support.InteractionBuilder;
+import com.atlassian.ta.wiremockpactgenerator.support.PactSpy;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,11 +22,24 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 
 @RunWith(Parameterized.class)
-public class JsonBodySerializationTest extends BasePactGeneratorTest {
+public class JsonBodySerializationTest {
 
     public enum HttpMessageType {REQUEST, RESPONSE}
 
     private final HttpMessageType httpMessageType;
+
+    @Mock
+    private FileSystem fileSystem;
+
+    private InteractionBuilder interactionBuilder;
+    private PactSpy pactSpy;
+
+    @Before
+    public void beforeEach() {
+        MockitoAnnotations.initMocks(this);
+        interactionBuilder = new InteractionBuilder(fileSystem);
+        pactSpy = new PactSpy(fileSystem);
+    }
 
     @Parameterized.Parameters(name = "{0} body serialization")
     public static Collection<HttpMessageType> parameters() {
@@ -158,11 +177,11 @@ public class JsonBodySerializationTest extends BasePactGeneratorTest {
     }
 
     private JsonElement getCapturedBody() {
-        switch (httpMessageType){
+        switch (httpMessageType) {
             case REQUEST:
-                return getBody("request");
+                return pactSpy.firstRequestBodyAsJson();
             case RESPONSE:
-                return getBody("response");
+                return pactSpy.firstResponseBodyAsJson();
             default:
                 throw new RuntimeException("httpMessageType is null. this should never happen");
         }
@@ -171,37 +190,26 @@ public class JsonBodySerializationTest extends BasePactGeneratorTest {
     private void whenHttpMessageInInteractionContainsBody(final String body) {
         switch (httpMessageType) {
             case REQUEST:
-                whenTheInteractionIsInvoked(
-                        aPostRequest()
-                                .withBody(body)
-                                .build()
-                );
+                interactionBuilder
+                        .withRequest(
+                                new PactGeneratorRequest.Builder()
+                                        .withMethod("POST")
+                                        .withUrl("/path")
+                                        .withBody(body)
+                                        .build()
+                        ).perform();
                 break;
             case RESPONSE:
-                whenTheInteractionIsInvoked(
-                        aDefaultResponse()
-                                .withBody(body)
-                                .build()
-                );
+                interactionBuilder
+                        .withResponse(
+                                new PactGeneratorResponse.Builder()
+                                        .withStatus(200)
+                                        .withBody(body)
+                                        .build()
+                        ).perform();
                 break;
             default:
                 throw new RuntimeException("httpMessageType is null. this should never happen");
         }
-    }
-
-    private JsonElement getBody(final String requestOrResponse) {
-        final String raw = getRawSavedPact();
-        final JsonParser parser = new JsonParser();
-        final JsonObject object = parser.parse(raw).getAsJsonObject();
-        return object
-                .getAsJsonArray("interactions")
-                .get(0).getAsJsonObject()
-                .getAsJsonObject(requestOrResponse)
-                .get("body");
-    }
-
-    private PactGeneratorRequest.Builder aPostRequest() {
-        return aDefaultRequest()
-                .withMethod("POST");
     }
 }
