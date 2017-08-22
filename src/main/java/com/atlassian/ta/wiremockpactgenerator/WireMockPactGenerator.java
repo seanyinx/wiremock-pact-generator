@@ -21,6 +21,20 @@ public class WireMockPactGenerator implements RequestListener {
 
     @Override
     public void requestReceived(final Request request, final Response response) {
+        try {
+            saveInteraction(request, response);
+        } catch (final RuntimeException exception) {
+            System.err.println("WireMock Pact Generator: unexpected error. Forcing system exit.");
+            exception.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+    public String getPactLocation() {
+        return PactGeneratorRegistry.getPactLocation(consumerName, providerName);
+    }
+
+    private void saveInteraction(final Request request, final Response response) {
         final PactGeneratorRequest.Builder requestBuilder = new PactGeneratorRequest.Builder()
                 .withMethod(request.getMethod().value())
                 .withUrl(request.getUrl())
@@ -38,10 +52,6 @@ public class WireMockPactGenerator implements RequestListener {
                 requestBuilder.build(),
                 responseBuilder.build()
         );
-    }
-
-    public String getPactLocation() {
-        return PactGeneratorRegistry.getPactLocation(consumerName, providerName);
     }
 
     private Map<String, List<String>> extractHeaders(final HttpHeaders wireMockHeaders) {
