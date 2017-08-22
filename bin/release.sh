@@ -4,7 +4,7 @@ commit_prefix="chore: [release] "
 
 function get_release_version {
     DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-    version=`jq -r .version $DIR/next_version.json`
+    version=`cat $DIR/version_to_release`
 
     format="^[0-9]+\\.[0-9]+\\.[0-9]+$"
 

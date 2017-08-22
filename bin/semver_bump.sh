@@ -10,7 +10,7 @@ function on_error {
 }
 
 function get_current_version {
-    version=`jq -r .version $DIR/next_version.json`
+    version=`cat $DIR/version_to_release`
     v=( ${version//./ } )
 
     if [ ${#v[@]} -ne 3 ]; then
@@ -36,9 +36,8 @@ function bump_version {
     esac
 
     new_version="${v[0]}.${v[1]}.${v[2]}"
-
-    jq .version=\"$new_version\" $DIR/next_version.json > $DIR/next_version.json.next
-    mv $DIR/next_version.json.next $DIR/next_version.json
+    echo "${new_version}" > $DIR/version_to_release
+    sed -e "s|\"version\": \"0.0.0\"|\"version\": \"${new_version}\"|" $DIR/../package.json > $DIR/../target/package.json
 
     echo "Version bumped from $version to $new_version"
 }
@@ -60,7 +59,7 @@ function generate_third_party {
 
 function commit_changes {
     set -e
-    git add $DIR/next_version.json
+    git add $DIR/version_to_release
     git add $DIR/../THIRD-PARTY.txt
     git add $DIR/../CHANGELOG.md
     git commit -m "chore: prepare release for v$new_version"
