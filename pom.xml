@@ -13,9 +13,9 @@
     <version>0.0.7-SNAPSHOT</version>
 
     <name>Wiremock Pact Generator</name>
-    <description>
-        Generation of Pact files from the live interactions of WireMock stubs.
-    </description>
+    <description>Generation of Pact files from the live interactions of WireMock stubs.</description>
+    <url>https://bitbucket.org/atlassian/wiremock-pact-generator</url>
+
     <inceptionYear>2017</inceptionYear>
     <licenses>
         <license>
@@ -32,8 +32,7 @@
     <scm>
         <connection>scm:git:ssh://git@bitbucket.org/atlassian/wiremock-pact-generator.git</connection>
         <developerConnection>scm:git:ssh://git@bitbucket.org/atlassian/wiremock-pact-generator.git</developerConnection>
-        <tag>HEAD</tag>
-        <url>https://bitbucket.org/atlassian/wiremock-pact-generator</url>
+        <url>https://bitbucket.org/atlassian/wiremock-pact-generator/src</url>
     </scm>
 
     <developers>
@@ -41,11 +40,13 @@
             <name>Ben Sayers</name>
             <email>bsayers@atlassian.com</email>
             <organization>Atlassian</organization>
+            <organizationUrl>https://www.atlassian.com/</organizationUrl>
         </developer>
         <developer>
             <name>Sebastian Tello</name>
             <email>stello@atlassian.com</email>
             <organization>Atlassian</organization>
+            <organizationUrl>https://www.atlassian.com/</organizationUrl>
         </developer>
     </developers>
 
