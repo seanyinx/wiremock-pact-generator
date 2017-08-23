@@ -132,7 +132,8 @@ public class WireMockPactGeneratorTest {
     }
 
     private String uniqueName(final String prefix) {
-        return String.format("%s-%s", prefix, UUID.randomUUID());
+        final String uuid = UUID.randomUUID().toString();
+        return String.format("%s%s", prefix, uuid.substring(uuid.length() - 12));
     }
 
     private void whenInteractionOccurs(final WireMockServer server) {

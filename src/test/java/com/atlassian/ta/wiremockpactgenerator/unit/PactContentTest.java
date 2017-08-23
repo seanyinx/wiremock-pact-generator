@@ -1,9 +1,10 @@
 package com.atlassian.ta.wiremockpactgenerator.unit;
 
 import com.atlassian.ta.wiremockpactgenerator.FileSystem;
-import com.atlassian.ta.wiremockpactgenerator.PactGeneratorRequest;
-import com.atlassian.ta.wiremockpactgenerator.PactGeneratorResponse;
-import com.atlassian.ta.wiremockpactgenerator.WiremockPactGeneratorException;
+import com.atlassian.ta.wiremockpactgenerator.IdGenerator;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactGeneratorRequest;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactGeneratorResponse;
+import com.atlassian.ta.wiremockpactgenerator.WireMockPactGeneratorException;
 import com.atlassian.ta.wiremockpactgenerator.support.HeadersBuilder;
 import com.atlassian.ta.wiremockpactgenerator.support.InteractionBuilder;
 import com.atlassian.ta.wiremockpactgenerator.support.PactSpy;
@@ -31,6 +32,9 @@ public class PactContentTest {
     @Mock
     private FileSystem fileSystem;
 
+    @Mock
+    private IdGenerator idGenerator;
+
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
@@ -40,7 +44,7 @@ public class PactContentTest {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        interactionBuilder = new InteractionBuilder(fileSystem);
+        interactionBuilder = new InteractionBuilder(fileSystem, idGenerator);
         pactSpy = new PactSpy(fileSystem);
     }
 
@@ -63,7 +67,7 @@ public class PactContentTest {
     }
 
     @Test
-    public void shouldFailIfConsumerNameIsNull() throws WiremockPactGeneratorException {
+    public void shouldFailIfConsumerNameIsNull() throws WireMockPactGeneratorException {
         expectAWiremockPactGeneratorException("Consumer name can't be null or blank");
 
         interactionBuilder
@@ -72,7 +76,7 @@ public class PactContentTest {
     }
 
     @Test
-    public void shouldFailIfConsumerNameIsBlank() throws WiremockPactGeneratorException {
+    public void shouldFailIfConsumerNameIsBlank() throws WireMockPactGeneratorException {
         expectAWiremockPactGeneratorException("Consumer name can't be null or blank");
 
         interactionBuilder
@@ -81,7 +85,7 @@ public class PactContentTest {
     }
 
     @Test
-    public void shouldFailIfProviderNameIsNull() throws WiremockPactGeneratorException {
+    public void shouldFailIfProviderNameIsNull() throws WireMockPactGeneratorException {
         expectAWiremockPactGeneratorException("Provider name can't be null or blank");
 
         interactionBuilder
@@ -90,7 +94,7 @@ public class PactContentTest {
     }
 
     @Test
-    public void shouldFailIfProviderNameIsBlank() throws WiremockPactGeneratorException {
+    public void shouldFailIfProviderNameIsBlank() throws WireMockPactGeneratorException {
         expectAWiremockPactGeneratorException("Provider name can't be null or blank");
 
         interactionBuilder
@@ -412,7 +416,7 @@ public class PactContentTest {
     }
 
     private void expectAWiremockPactGeneratorException(final String message) {
-        expectedException.expect(WiremockPactGeneratorException.class);
+        expectedException.expect(WireMockPactGeneratorException.class);
         expectedException.expectMessage(message);
     }
 }

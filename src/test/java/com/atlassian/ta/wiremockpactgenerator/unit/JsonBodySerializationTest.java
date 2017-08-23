@@ -1,8 +1,9 @@
 package com.atlassian.ta.wiremockpactgenerator.unit;
 
 import com.atlassian.ta.wiremockpactgenerator.FileSystem;
-import com.atlassian.ta.wiremockpactgenerator.PactGeneratorRequest;
-import com.atlassian.ta.wiremockpactgenerator.PactGeneratorResponse;
+import com.atlassian.ta.wiremockpactgenerator.IdGenerator;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactGeneratorRequest;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactGeneratorResponse;
 import com.atlassian.ta.wiremockpactgenerator.support.InteractionBuilder;
 import com.atlassian.ta.wiremockpactgenerator.support.PactSpy;
 import com.google.gson.JsonElement;
@@ -31,13 +32,16 @@ public class JsonBodySerializationTest {
     @Mock
     private FileSystem fileSystem;
 
+    @Mock
+    private IdGenerator idGenerator;
+
     private InteractionBuilder interactionBuilder;
     private PactSpy pactSpy;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        interactionBuilder = new InteractionBuilder(fileSystem);
+        interactionBuilder = new InteractionBuilder(fileSystem, idGenerator);
         pactSpy = new PactSpy(fileSystem);
     }
 

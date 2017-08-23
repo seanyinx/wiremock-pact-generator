@@ -1,10 +1,13 @@
 package com.atlassian.ta.wiremockpactgenerator.unit;
 
+import com.atlassian.ta.wiremockpactgenerator.Config;
 import com.atlassian.ta.wiremockpactgenerator.FileSystem;
-import com.atlassian.ta.wiremockpactgenerator.PactGenerator;
-import com.atlassian.ta.wiremockpactgenerator.WiremockPactGeneratorException;
-import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactSaver;
+import com.atlassian.ta.wiremockpactgenerator.IdGenerator;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactGenerator;
+import com.atlassian.ta.wiremockpactgenerator.WireMockPactGeneratorException;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactGeneratorFactory;
 import com.atlassian.ta.wiremockpactgenerator.support.InteractionBuilder;
+import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -16,18 +19,22 @@ import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doThrow;
 
 public class PactFileSavingTest {
 
     @Mock
     private FileSystem fileSystem;
+
+    @Mock
+    private IdGenerator idGenerator;
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -37,84 +44,81 @@ public class PactFileSavingTest {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        interactionBuilder = new InteractionBuilder(fileSystem);
+        interactionBuilder = new InteractionBuilder(fileSystem, idGenerator);
     }
 
     @Test
     public void shouldKnowWhereTheLocationOfThePactFileWillBe() {
+        givenThePathsExist("target", "target/pacts");
+        givenGeneratedId("123");
         final PactGenerator pactGenerator = whenPactGeneratorIsCreated("aConsumer", "aProvider");
 
-        assertThat(pactGenerator.getPactLocation(), equalTo("target/pacts/aConsumer-aProvider-pact.json"));
+        assertThat(pactGenerator.getPactLocation(), equalTo("target/pacts/aConsumer-aProvider-123-pact.json"));
+    }
+
+    @Test
+    public void shouldGenerateANewIdForEveryPactGeneratorInstance() {
+        whenPactGeneratorIsCreated();
+        verify(idGenerator, times(1)).generate();
+
+        whenPactGeneratorIsCreated();
+        verify(idGenerator, times(2)).generate();
     }
 
     @Test
     public void shouldSaveAPactFileInTheTargetDirectory_WhenItExists() throws Throwable {
         givenThePathsExist("target");
 
-        interactionBuilder
-                .withConsumer("consumerName")
-                .withProvider("providerName")
-                .perform();
+        interactionBuilder.perform();
 
-        verify(fileSystem).saveFile(eq("target/pacts/consumerName-providerName-pact.json"), anyString());
+        verify(fileSystem).saveFile(startsWith("target/pacts/"), anyString());
     }
 
     @Test
     public void shouldSaveThePactFileInTheBuildDirectory_WhenItExists() throws Throwable {
         givenThePathsExist("build");
 
-        interactionBuilder
-                .withConsumer("consumer")
-                .withProvider("provider")
-                .perform();
+        interactionBuilder.perform();
 
-        verify(fileSystem).saveFile(eq("build/pacts/consumer-provider-pact.json"), anyString());
+        verify(fileSystem).saveFile(startsWith("build/pacts/"), anyString());
     }
 
     @Test
     public void shouldSaveThePactFileInTheTargetDirectory_WhenBothBuildAndTargetExists() throws Throwable {
         givenThePathsExist("target", "build");
 
-        interactionBuilder
-                .withConsumer("consumerName")
-                .withProvider("providerName")
-                .perform();
+        interactionBuilder.perform();
 
-        verify(fileSystem).saveFile(eq("target/pacts/consumerName-providerName-pact.json"), anyString());
+        verify(fileSystem).saveFile(startsWith("target/pacts/"), anyString());
     }
 
     @Test
     public void shouldSaveThePactFileInTheTargetDirectory_WhenNoOutputDirectoriesExist() throws Throwable {
         givenNoPathsExist();
 
-        interactionBuilder
-                .withConsumer("consumerName")
-                .withProvider("providerName")
-                .perform();
+        interactionBuilder.perform();
 
-        verify(fileSystem).saveFile(eq("target/pacts/consumerName-providerName-pact.json"), anyString());
+        verify(fileSystem).saveFile(startsWith("target/pacts/"), anyString());
     }
 
     @Test
     public void shouldNormalizeConsumerInFileName_WhenItHasSpecialUnicodeSequences() throws Throwable {
         interactionBuilder
                 .withConsumer("el.Consumidor./Más.Importante☃")
-                .withProvider("providerName")
                 .perform();
 
         verify(fileSystem).saveFile(
-                eq("target/pacts/elConsumidorMasImportante-providerName-pact.json"), anyString());
+                contains("/elConsumidorMasImportante-"), anyString());
     }
 
     @Test
     public void shouldNormalizeProviderInFileName_WhenItHasSpecialUnicodeSequences() throws Throwable {
         interactionBuilder
-                .withConsumer("consumerName")
                 .withProvider("☃proveedorEspañol?*/")
                 .perform();
 
         verify(fileSystem).saveFile(
-                eq("target/pacts/consumerName-proveedorEspanol-pact.json"), anyString());
+                contains("-proveedorEspanol-"), anyString());
     }
 
     @Test
@@ -152,7 +156,7 @@ public class PactFileSavingTest {
     }
 
     @Test
-    public void shouldNotDoHTMLEcaping_whenPactContainsSymbolsLikeGreaterThan() throws Throwable {
+    public void shouldNotDoHTMLEscaping_whenPactContainsSymbolsLikeGreaterThan() throws Throwable {
         interactionBuilder
                 .withConsumer("The<Consumer>")
                 .perform();
@@ -167,20 +171,19 @@ public class PactFileSavingTest {
     }
 
     @Test
-    public void shouldThrowWiremockPactGeneratorException_WhenFileCantBeSaved() throws Throwable {
+    public void shouldThrowWireMockPactGeneratorException_WhenFileCantBeSaved() throws Throwable {
         final Throwable cause = new RuntimeException("oops");
 
-        expectAWiremockPactGeneratorException(
-                "Unable to save file 'target/pacts/consumerName-providerName-pact.json'",
+        final String pactFile = interactionBuilder.getPactLocation();
+
+        expectAWireMockPactGeneratorException(
+                equalTo(String.format("Unable to save file '%s'", pactFile)),
                 cause
         );
 
         doThrow(cause).when(fileSystem).saveFile(anyString(), anyString());
 
-        interactionBuilder
-                .withConsumer("consumerName")
-                .withProvider("providerName")
-                .perform();
+        interactionBuilder.perform();
     }
 
     private void givenNoPathsExist() {
@@ -194,13 +197,27 @@ public class PactFileSavingTest {
         });
     }
 
-    private PactGenerator whenPactGeneratorIsCreated(final String consumerName, final String providerName) {
-        final PactSaver pactSaver = new PactSaver(fileSystem);
-        return new PactGenerator(consumerName, providerName, pactSaver);
+    private void givenGeneratedId(final String id) {
+        given(idGenerator.generate()).willAnswer(invocation -> id);
     }
 
-    private void expectAWiremockPactGeneratorException(final String message, final Throwable cause) {
-        expectedException.expect(WiremockPactGeneratorException.class);
+    private PactGenerator whenPactGeneratorIsCreated() {
+        return whenPactGeneratorIsCreated("defaultConsumer", "defaultProvider");
+    }
+
+    private PactGenerator whenPactGeneratorIsCreated(final String consumerName, final String providerName) {
+        return PactGeneratorFactory.createPactGenerator(
+                new Config.Builder()
+                    .withConsumerName(consumerName)
+                    .withProviderName(providerName)
+                    .withFileSystem(fileSystem)
+                    .withIdGenerator(idGenerator)
+                    .build()
+        );
+    }
+
+    private void expectAWireMockPactGeneratorException(final Matcher<String> message, final Throwable cause) {
+        expectedException.expect(WireMockPactGeneratorException.class);
         expectedException.expectMessage(message);
         expectedException.expectCause(equalTo(cause));
     }

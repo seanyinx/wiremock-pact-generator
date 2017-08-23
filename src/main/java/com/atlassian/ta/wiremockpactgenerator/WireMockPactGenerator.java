@@ -1,5 +1,8 @@
 package com.atlassian.ta.wiremockpactgenerator;
 
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactGeneratorRegistry;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactGeneratorRequest;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactGeneratorResponse;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.RequestListener;

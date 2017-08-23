@@ -1,4 +1,4 @@
-package com.atlassian.ta.wiremockpactgenerator;
+package com.atlassian.ta.wiremockpactgenerator.pactgenerator;
 
 import java.util.List;
 import java.util.Map;

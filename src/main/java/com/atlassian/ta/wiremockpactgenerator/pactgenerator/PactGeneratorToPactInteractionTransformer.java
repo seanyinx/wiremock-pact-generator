@@ -1,7 +1,5 @@
 package com.atlassian.ta.wiremockpactgenerator.pactgenerator;
 
-import com.atlassian.ta.wiremockpactgenerator.PactGeneratorRequest;
-import com.atlassian.ta.wiremockpactgenerator.PactGeneratorResponse;
 import com.atlassian.ta.wiremockpactgenerator.models.PactInteraction;
 import com.atlassian.ta.wiremockpactgenerator.models.PactRequest;
 import com.atlassian.ta.wiremockpactgenerator.models.PactResponse;
