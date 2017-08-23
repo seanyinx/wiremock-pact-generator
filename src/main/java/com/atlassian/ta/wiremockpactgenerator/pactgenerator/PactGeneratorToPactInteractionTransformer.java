@@ -4,12 +4,19 @@ import com.atlassian.ta.wiremockpactgenerator.models.PactInteraction;
 import com.atlassian.ta.wiremockpactgenerator.models.PactRequest;
 import com.atlassian.ta.wiremockpactgenerator.models.PactResponse;
 
+import java.util.AbstractMap;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class PactGeneratorToPactInteractionTransformer {
+    private static final List<String> IGNORE_REQUEST_HEADERS = Arrays.asList("host");
+    private static final List<String> IGNORE_RESPONSE_HEADERS = Collections.emptyList();
+
     private PactGeneratorToPactInteractionTransformer() {
 
     }
@@ -24,15 +31,19 @@ public class PactGeneratorToPactInteractionTransformer {
     private static PactRequest toPactRequest(final PactGeneratorRequest request) {
         final String[] pathAndQuery = splitPathAndQuery(request.getUrl());
         final String method = request.getMethod().toUpperCase();
-        final Map<String, String> headers = getProcessedHeaders(request.getHeaders());
 
-        return new PactRequest(method, pathAndQuery[0], pathAndQuery[1], headers, normalizeBody(request.getBody()));
+        return new PactRequest(
+                method,
+                pathAndQuery[0],
+                pathAndQuery[1],
+                getProcessedHeaders(request.getHeaders(), IGNORE_REQUEST_HEADERS),
+                normalizeBody(request.getBody()));
     }
 
     private static PactResponse toPactResponse(final PactGeneratorResponse response) {
         return new PactResponse(
                 response.getStatus(),
-                getProcessedHeaders(response.getHeaders()),
+                getProcessedHeaders(response.getHeaders(), IGNORE_RESPONSE_HEADERS),
                 normalizeBody(response.getBody()));
     }
 
@@ -46,18 +57,23 @@ public class PactGeneratorToPactInteractionTransformer {
         return new String[] {url, null};
     }
 
-    private static Map<String, String> getProcessedHeaders(final Map<String, List<String>> rawHeaders) {
-        final Map<String, String> headers = new HashMap<>();
-
-        if (rawHeaders != null) {
-            for (Map.Entry<String, List<String>> header : rawHeaders.entrySet()) {
-                final String headerName = header.getKey().toLowerCase(Locale.ENGLISH);
-                final String headerValue = String.join(", ", header.getValue());
-                headers.put(headerName, headerValue);
-            }
+    private static Map<String, String> getProcessedHeaders(final Map<String, List<String>> rawHeaders,
+                                                           final List<String> ignoreHeaders) {
+        if (rawHeaders == null) {
+            return new HashMap<>();
         }
 
-        return headers;
+        return rawHeaders.entrySet()
+                .stream()
+                .map(header -> new AbstractMap.SimpleEntry<>(
+                        header.getKey().toLowerCase(Locale.ENGLISH),
+                        String.join(", ", header.getValue()))
+                )
+                .filter(header -> !ignoreHeaders.contains(header.getKey()))
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue
+                ));
     }
 
     private static  String normalizeBody(final String body) {

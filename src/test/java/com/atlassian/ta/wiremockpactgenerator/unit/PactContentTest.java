@@ -15,6 +15,8 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -225,6 +227,24 @@ public class PactContentTest {
         final Map<String, String> requestHeaders = pactSpy.firstRequestHeaders();
         assertThat(requestHeaders.values(), hasSize(1));
         assertThat(requestHeaders.get("x-header-name"), equalTo("some value"));
+    }
+
+    @Test
+    public void shouldNotCaptureRequestHostHeader() {
+        interactionBuilder
+                .withRequest(
+                        aDefaultRequest()
+                                .withHeaders(
+                                        new HeadersBuilder()
+                                                .withHeader("host", "localhost:1234")
+                                                .withHeader("x-keep-me", "value")
+                                                .build()
+                                )
+                                .build()
+                )
+                .perform();
+
+        assertThat(pactSpy.firstRequestHeaders().keySet(), equalTo(new HashSet<>(Arrays.asList("x-keep-me"))));
     }
 
     @Test

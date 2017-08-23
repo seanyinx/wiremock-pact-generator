@@ -1,12 +1,12 @@
 package com.atlassian.ta.wiremockpactgenerator.support;
 
 import com.atlassian.ta.wiremockpactgenerator.FileSystem;
-import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.mockito.ArgumentCaptor;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.anyString;
@@ -45,7 +45,7 @@ public class PactSpy {
     }
 
     public Map<String, String> firstRequestHeaders() {
-        return parseHeaders(firstRequest().getAsJsonObject("headers"));
+        return getHeaders(firstRequest());
     }
 
     public String firstRequestBody() {
@@ -61,7 +61,7 @@ public class PactSpy {
     }
 
     public Map<String, String> firstResponseHeaders() {
-        return parseHeaders(firstResponse().getAsJsonObject("headers"));
+        return getHeaders(firstResponse());
     }
 
     public String firstResponseBody() {
@@ -90,9 +90,14 @@ public class PactSpy {
         return getInteraction(0).getAsJsonObject("response");
     }
 
-    private Map<String, String> parseHeaders(final JsonObject jsonHeaders) {
-        final Map<String, String> headers = Maps.newHashMap();
-        jsonHeaders.entrySet().forEach((entry) -> headers.put(entry.getKey(), entry.getValue().getAsString()));
+    private Map<String, String> getHeaders(final JsonObject httpMessage) {
+        final Map<String, String> headers = new HashMap<>();
+
+        if (httpMessage.has("headers")) {
+            httpMessage.getAsJsonObject("headers")
+                    .entrySet()
+                    .forEach((entry) -> headers.put(entry.getKey(), entry.getValue().getAsString()));
+        }
 
         return headers;
     }
