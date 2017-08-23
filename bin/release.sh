@@ -22,13 +22,13 @@ function prepare_release {
 
 function rollback {
     echo "Rolling back changes"
-    echo mvn release:rollback
+    mvn release:rollback
     exit 1
 }
 
 function perform_release {
     echo "Performing release of wiremock-pact-generator v$version"
-    echo mvn release:perform
+    mvn release:perform
 }
 
 function main {
