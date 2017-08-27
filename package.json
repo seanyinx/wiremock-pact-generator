@@ -5,9 +5,11 @@
   "description": "",
   "main": "",
   "scripts": {
-    "generate-changelog": "./node_modules/.bin/conventional-changelog -p angular -i CHANGELOG.md -s -k target/package.json"
+    "generate-changelog": "./node_modules/.bin/conventional-changelog -p angular -i CHANGELOG.md -s -k target/package.json",
+    "lint-commits": "./node_modules/.bin/conventional-changelog-lint --from=v0.0.6 -p angular"
   },
   "devDependencies": {
-    "conventional-changelog-cli": "^1.3.2"
+    "conventional-changelog-cli": "^1.3.2",
+    "conventional-changelog-lint": "^2.1.1"
   }
 }

@@ -5,4 +5,4 @@ pipelines:
     - step:
         script:
           - mvn --version
-          - mvn clean verify javadoc:jar
+          - mvn -B clean verify javadoc:jar

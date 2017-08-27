@@ -34,7 +34,7 @@ mvn clean install
 
 Commits to this codebase should follow the [conventional changelog conventions](https://github.com/bcoe/conventional-changelog-standard/blob/master/convention.md).
 
-- `mvn verify` - Runs all the tests and checkstyle.
+- `mvn verify` - Runs all the tests, checkstyle, and lints commit messages. Execute it before pushing any changes.
 
 ## Releasing a new version
 
