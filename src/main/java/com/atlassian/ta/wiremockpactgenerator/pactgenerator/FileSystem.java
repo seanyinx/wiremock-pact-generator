@@ -1,4 +1,4 @@
-package com.atlassian.ta.wiremockpactgenerator;
+package com.atlassian.ta.wiremockpactgenerator.pactgenerator;
 
 public interface FileSystem {
     boolean pathExists(String path);

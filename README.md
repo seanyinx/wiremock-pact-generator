@@ -40,7 +40,9 @@ wireMockServer = new WireMockServer(...options);
 
 // 2. Add the WireMockPactGenerator listener
 wireMockServer.addMockServiceRequestListener(
-    new WireMockPactGenerator("the-consumer", "the-provider")
+    WireMockPactGenerator
+        .builder("the-consumer", "the-provider")
+        .build()
 );
 
 // 3. That's it!.. create your endpoint stubs and use them.
@@ -52,7 +54,27 @@ wireMockServer.addStubMapping(get(urlEqualTo("/path/resource/123"))
 myClient.getResource("123")
 ```
 
-After running your tests, Maven users will find pact files in the `target/pacts` directory and Gradle users will find pact files in the `build/pacts` directory.
+After running your tests, Maven users will find pact files in the `target/pacts` directory and Gradle users will find
+pact files in the `build/pacts` directory.
+
+### Filtering interactions
+
+You can provide request path Regex matchers to tell WireMockPactGenerator which pact interactions should be saved.
+
+```java
+myWireMockServer.addMockServiceRequestListener(
+    WireMockPactGenerator
+        .builder("myConsumer", "myProvider")
+        .withRequestPathWhitelist(
+            "/rest/.*",
+            "/v2/api/.*"
+        ).build()
+);
+...
+myClient.getResource("/rest/resource/123"); // Pact interaction will be generated.
+myClient.getResource("/v2/api/resources/123"); // Pact interaction will be generated.
+myClient.getResource("/internal/api/"); // NO pact interaction will be generated.
+``` 
 
 ## Changelog
 See [CHANGELOG.md](CHANGELOG.md)

@@ -1,5 +1,7 @@
 package com.atlassian.ta.wiremockpactgenerator.pactgenerator;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +27,22 @@ public class PactGeneratorRequest {
         return url;
     }
 
+    public String getPath() {
+        try {
+            return new URL("http", "dummyhost", getUrl()).getPath();
+        } catch (final MalformedURLException e) {
+            return null;
+        }
+    }
+
+    public String getQuery() {
+        try {
+            return new URL("http", "dummyhost", getUrl()).getQuery();
+        } catch (final MalformedURLException e) {
+            return null;
+        }
+    }
+
     public String getBody() {
         return body;
     }
@@ -34,36 +52,39 @@ public class PactGeneratorRequest {
     }
 
     public static class Builder {
-        private String method;
-        private String url;
-        private String body;
-        private Map<String, List<String>> headers;
+        private final String method;
+        private final String url;
+        private final String body;
+        private final Map<String, List<String>> headers;
 
         public Builder() {
-            method = null;
-            url = null;
-            body = null;
-            headers = null;
+            this(null, null, null, null);
+        }
+
+        private Builder(final String method,
+                        final  String url,
+                        final String body,
+                        final Map<String, List<String>> headers) {
+            this.method = method;
+            this.url = url;
+            this.body = body;
+            this.headers = Headers.cloneHeaders(headers);
         }
 
         public Builder withMethod(final String method) {
-            this.method = method;
-            return this;
+            return new Builder(method, url, body, headers);
         }
 
         public Builder withUrl(final String url) {
-            this.url = url;
-            return this;
+            return new Builder(method, url, body, headers);
         }
 
         public Builder withHeaders(final Map<String, List<String>> headers) {
-            this.headers = headers;
-            return this;
+            return new Builder(method, url, body, headers);
         }
 
         public Builder withBody(final String body) {
-            this.body = body;
-            return this;
+            return new Builder(method, url, body, headers);
         }
 
         public PactGeneratorRequest build() {

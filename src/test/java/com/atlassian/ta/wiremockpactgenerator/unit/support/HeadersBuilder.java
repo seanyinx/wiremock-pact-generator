@@ -1,4 +1,4 @@
-package com.atlassian.ta.wiremockpactgenerator.support;
+package com.atlassian.ta.wiremockpactgenerator.unit.support;
 
 import java.util.ArrayList;
 import java.util.Arrays;

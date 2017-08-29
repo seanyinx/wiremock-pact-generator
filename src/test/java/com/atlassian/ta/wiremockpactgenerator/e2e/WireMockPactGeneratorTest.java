@@ -1,12 +1,13 @@
 package com.atlassian.ta.wiremockpactgenerator.e2e;
 
 import com.atlassian.ta.wiremockpactgenerator.WireMockPactGenerator;
-import com.atlassian.ta.wiremockpactgenerator.models.Pact;
-import com.atlassian.ta.wiremockpactgenerator.models.PactHttpBody;
-import com.atlassian.ta.wiremockpactgenerator.models.PactInteraction;
-import com.atlassian.ta.wiremockpactgenerator.models.PactRequest;
-import com.atlassian.ta.wiremockpactgenerator.models.PactResponse;
-import com.atlassian.ta.wiremockpactgenerator.support.PactHttpBodyDeserializer;
+import com.atlassian.ta.wiremockpactgenerator.WireMockPactGeneratorException;
+import com.atlassian.ta.wiremockpactgenerator.e2e.support.PactHttpBodyDeserializer;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.Pact;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.PactHttpBody;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.PactInteraction;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.PactRequest;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.PactResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
@@ -21,7 +22,9 @@ import com.google.gson.stream.JsonReader;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.mashape.unirest.request.HttpRequest;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,50 +32,32 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.startsWith;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 
 public class WireMockPactGeneratorTest {
-    private static final JsonSchema pactSchema = loadPactSchema();
-
-    private interface Action {
-        void perform();
-    }
-
-    private interface WireMockContext {
-        void execute(WireMockServer wireMockServer);
-    }
-
-    @Test
-    public void shouldCreateAValidPactFileWhenWireMockProcessesARequest() {
-        final WireMockPactGenerator pactGenerator = new WireMockPactGenerator(
-                uniqueName("the-consumer"),
-                uniqueName("the-provider")
-        );
-
-        withWireMock(this::whenInteractionOccurs, pactGenerator);
-
-        validateSchema(pactGenerator.getPactLocation());
-    }
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
     @Test
     public void shouldConsolidatePactsAcrossMultipleWireMockInstances() {
         final String consumer = uniqueName("consumer");
         final String provider = uniqueName("provider");
-        final WireMockPactGenerator pactGenerator1 = new WireMockPactGenerator(consumer, provider);
-        final WireMockPactGenerator pactGenerator2 = new WireMockPactGenerator(consumer, provider);
+        final WireMockPactGenerator pactGenerator1 = WireMockPactGenerator.builder(consumer, provider).build();
+        final WireMockPactGenerator pactGenerator2 = WireMockPactGenerator.builder(consumer, provider).build();
 
-        withWireMock(this::whenUniqueInteractionOccurs, pactGenerator1);
+        withWireMock(pactGenerator1, this::givenAStubForAnyPost, this::whenAUniquePostRequest);
+        withWireMock(pactGenerator2, this::givenAStubForAnyPost, this::whenAUniquePostRequest);
 
-        withWireMock(this::whenUniqueInteractionOccurs, pactGenerator2);
+        assertThat(pactGenerator1.getPactLocation(), equalTo(pactGenerator2.getPactLocation()));
 
         final Pact pact = loadPact(pactGenerator1.getPactLocation());
 
@@ -80,34 +65,95 @@ public class WireMockPactGeneratorTest {
     }
 
     @Test
+    public void shouldHonorEachWireMockPactGeneratorRequestPathWhitelist() {
+        final String consumer = uniqueName("consumer");
+        final String provider = uniqueName("provider");
+        final WireMockPactGenerator pactGeneratorForPath1AndPath2 = WireMockPactGenerator
+            .builder(consumer, provider)
+            .withRequestPathWhitelist(
+                "/matches/path-1/.*",
+                "/matches/path-2/.*")
+            .build();
+        final WireMockPactGenerator pactGeneratorForPath3AndPath4 = WireMockPactGenerator
+            .builder(consumer, provider)
+            .withRequestPathWhitelist(
+                "/matches/path-3/.*",
+                "/matches/path-4/.*")
+            .build();
+
+        withWireMock(
+            pactGeneratorForPath1AndPath2,
+            this::givenAStubForAnyPost,
+            wireMockServer -> {
+                whenAPostRequestToAPathStartingWith(wireMockServer, "/matches/path-1/");
+                whenAPostRequestToAPathStartingWith(wireMockServer, "/matches/path-3/");
+                whenAPostRequestToAPathStartingWith(wireMockServer, "/matches/path-4/");
+            }
+        );
+
+        withWireMock(
+            pactGeneratorForPath3AndPath4,
+            this::givenAStubForAnyPost,
+            wireMockServer -> {
+                whenAPostRequestToAPathStartingWith(wireMockServer, "/matches/path-1/");
+                whenAPostRequestToAPathStartingWith(wireMockServer, "/matches/path-2/");
+                whenAPostRequestToAPathStartingWith(wireMockServer, "/matches/path-3/");
+            }
+        );
+
+        final Pact pact = loadPact(pactGeneratorForPath1AndPath2.getPactLocation());
+        assertThat(pact.getInteractions(), hasSize(2));
+        assertThat(pact.getInteractions().get(0).getRequest().getPath(), startsWith("/matches/path-1/"));
+        assertThat(pact.getInteractions().get(1).getRequest().getPath(), startsWith("/matches/path-3/"));
+    }
+
+    @Test
+    public void shouldCombineRequestPathWhitelists_whenMultipleListsArePassed() {
+        final WireMockPactGenerator wireMockPactGenerator = WireMockPactGenerator
+            .builder(uniqueName("consumer"), uniqueName("provider"))
+            .withRequestPathWhitelist("/matches/path-1/.*")
+            .withRequestPathWhitelist("/matches/path-2/.*", "/matches/path-3/.*")
+            .build();
+
+        withWireMock(wireMockPactGenerator,
+            this::givenAStubForAnyPost,
+            wireMockServer -> {
+                whenAPostRequestToAPathStartingWith(wireMockServer, "/matches/path-1/");
+                whenAPostRequestToAPathStartingWith(wireMockServer, "/matches/path-2/");
+                whenAPostRequestToAPathStartingWith(wireMockServer, "/matches/path-3/");
+            });
+
+        final Pact pact = loadPact(wireMockPactGenerator.getPactLocation());
+        assertThat(pact.getInteractions(), hasSize(3));
+    }
+
+    @Test
     public void shouldContainAllTheRequestAndResponseData() {
         final String consumer = uniqueName("consumer");
         final String provider = uniqueName("provider");
-        final WireMockPactGenerator pactGenerator = new WireMockPactGenerator(consumer, provider);
+        final WireMockPactGenerator pactGenerator = WireMockPactGenerator
+            .builder(consumer, provider)
+            .build();
 
-        withWireMock((WireMockServer wireMockServer) -> {
-            final StubMapping stub = post(urlEqualTo("/path/resource?foo=bar"))
-                    .willReturn(
-                            aResponse()
-                                    .withStatus(200)
-                                    .withHeader("content-type", "text/plain")
-                                    .withHeader("x-header", "one", "two")
-                                    .withBody("response body")
-                    )
-                    .build();
+        final ResponseDefinitionBuilder responseDefinition = aResponse()
+            .withStatus(200)
+            .withHeader("content-type", "text/plain")
+            .withHeader("x-header", "one", "two")
+            .withBody("response body");
 
-            withWireMockStub(wireMockServer, stub, () -> performRequest(
-                    Unirest.post(urlForPath(wireMockServer, "/path/resource"))
-                            .queryString("foo", "bar")
-                            .header("accept", "text/plain")
-                            .body("request body")
-                            .getHttpRequest()
-            ));
-        }, pactGenerator);
+        withWireMock(pactGenerator,
+            wireMockServer -> givenAStubForAnyPostWithResponse(wireMockServer, responseDefinition),
+            wireMockServer -> performRequest(
+                Unirest.post(urlForPath(wireMockServer, "/path/resource"))
+                    .queryString("foo", "bar")
+                    .header("accept", "text/plain")
+                    .body("request body")
+                    .getHttpRequest()
+            )
+
+        );
 
         final Pact pact = loadPact(pactGenerator.getPactLocation());
-
-        validateSchema(pactGenerator.getPactLocation());
 
         assertThat("consumer", pact.getConsumer().getName(), equalTo(consumer));
         assertThat("provider", pact.getProvider().getName(), equalTo(provider));
@@ -131,81 +177,88 @@ public class WireMockPactGeneratorTest {
         assertThat("interaction.response.headers.x-header", responseHeaders.get("x-header"), equalTo("one, two"));
     }
 
+    @Test
+    public void shouldFailRightAway_whenProvidingAnInvalidConsumerName() {
+        expectedException.expect(WireMockPactGeneratorException.class);
+
+        WireMockPactGenerator.builder("", "provider").build();
+    }
+
+    @Test
+    public void shouldFailRightAway_whenProvidingAnInvalidProviderName() {
+        expectedException.expect(WireMockPactGeneratorException.class);
+
+        WireMockPactGenerator.builder("consumer", "").build();
+    }
+
+    @Test
+    public void shouldFailRightAway_whenProvidingInvalidRequestPathWhitelistRegex() {
+        expectedException.expect(WireMockPactGeneratorException.class);
+
+        WireMockPactGenerator
+            .builder("consumer", "provider")
+            .withRequestPathWhitelist(
+                "/valid/.*",
+                "*/invalid")
+            .build();
+    }
+
     private String uniqueName(final String prefix) {
         final String uuid = UUID.randomUUID().toString();
         return String.format("%s%s", prefix, uuid.substring(uuid.length() - 12));
     }
 
-    private void whenInteractionOccurs(final WireMockServer server) {
-        final StubMapping aGetResponse = get(urlEqualTo("/path/resource/"))
-                .willReturn(aDefaultResponse()).build();
-
-        withWireMockStub(server, aGetResponse, () -> performRequest(Unirest.get(urlForPath(server, "/path/resource/"))));
+    private void whenAUniquePostRequest(final WireMockServer wireMockServer) {
+        whenAPostRequestToAPathStartingWith(wireMockServer, "/");
     }
 
-    private void whenUniqueInteractionOccurs(final WireMockServer server) {
-        final StubMapping response = post(urlMatching("/path/resource/.+"))
-                .willReturn(aDefaultResponse()).build();
+    private void whenAPostRequestToAPathStartingWith(final WireMockServer wireMockServer, final String basePath) {
+        final String path = basePath + UUID.randomUUID();
+        performRequest(
+            Unirest.post(urlForPath(wireMockServer, path))
+                .queryString("query", "string")
+                .header("accept", "anything")
+                .body("some content")
+                .getHttpRequest()
+        );
+    }
 
-        withWireMockStub(server, response, () -> {
-            final String path = String.format("/path/resource/%s", UUID.randomUUID());
-            performRequest(
-                    Unirest.post(urlForPath(server, path))
-                            .queryString("query", "string")
-                            .header("accept", "anything")
-                            .body("some content")
-                            .getHttpRequest()
-            );
-        });
+    private void givenAStubForAnyPost(final WireMockServer wireMockServer) {
+        givenAStubForAnyPostWithResponse(wireMockServer, aDefaultResponse());
+    }
+
+    private void givenAStubForAnyPostWithResponse(
+        final WireMockServer wireMockServer,
+        final ResponseDefinitionBuilder responseDefinition
+    ) {
+        final StubMapping stub = post(urlMatching(".+")).willReturn(responseDefinition).build();
+        wireMockServer.addStubMapping(stub);
     }
 
     private ResponseDefinitionBuilder aDefaultResponse() {
-        return  aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", "text/plain")
-                .withBody("the body");
+        return aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "text/plain")
+            .withBody("the body");
     }
 
     private String urlForPath(final WireMockServer wireMockServer, final String path) {
         return String.format("http://localhost:%d%s", wireMockServer.port(), path);
     }
 
-    private Pact loadPact(final String filename) {
-        final JsonReader reader;
-        try {
-            reader = new JsonReader(new FileReader(filename));
-        } catch (final FileNotFoundException e) {
-            throw new RuntimeException("Failed to load pact", e);
-        }
-        return new GsonBuilder()
-                .registerTypeAdapter(PactHttpBody.class, new PactHttpBodyDeserializer())
-                .create()
-                .fromJson(reader, Pact.class);
-    }
-
-    private void withWireMock(final WireMockContext action) {
+    private void withWireMock(
+        final WireMockPactGenerator listener,
+        final Consumer<WireMockServer> setupWireMock,
+        final Consumer<WireMockServer> makeRequests
+    ) {
         final WireMockServer wireMockServer = new WireMockServer(wireMockConfig().dynamicPort());
         wireMockServer.start();
         try {
-            action.execute(wireMockServer);
+            wireMockServer.addMockServiceRequestListener(listener);
+            setupWireMock.accept(wireMockServer);
+            makeRequests.accept(wireMockServer);
         } finally {
             wireMockServer.stop();
-        }
-    }
-
-    private void withWireMock(final WireMockContext action, final WireMockPactGenerator listener) {
-        withWireMock((WireMockServer wireMockServer) -> {
-            wireMockServer.addMockServiceRequestListener(listener);
-            action.execute(wireMockServer);
-        });
-    }
-
-    private void withWireMockStub(final WireMockServer wireMockServer, final StubMapping stub, final Action action) {
-        wireMockServer.addStubMapping(stub);
-        try {
-            action.perform();
-        } finally {
-            wireMockServer.removeStubMapping(stub);
         }
     }
 
@@ -217,10 +270,26 @@ public class WireMockPactGeneratorTest {
         }
     }
 
+    private Pact loadPact(final String filename) {
+        final JsonReader reader;
+        try {
+            reader = new JsonReader(new FileReader(filename));
+        } catch (final FileNotFoundException e) {
+            throw new RuntimeException("Failed to load pact", e);
+        }
+
+        validateSchema(filename);
+
+        return new GsonBuilder()
+            .registerTypeAdapter(PactHttpBody.class, new PactHttpBodyDeserializer())
+            .create()
+            .fromJson(reader, Pact.class);
+    }
+
     private void validateSchema(final String filename) {
         try {
             final JsonNode pact = JsonLoader.fromFile(new File(filename));
-            final ProcessingReport result = pactSchema.validate(pact);
+            final ProcessingReport result = loadPactSchema().validate(pact);
             final String failureMessage = result.toString();
             assertThat(failureMessage, result.isSuccess());
         } catch (final IOException e) {

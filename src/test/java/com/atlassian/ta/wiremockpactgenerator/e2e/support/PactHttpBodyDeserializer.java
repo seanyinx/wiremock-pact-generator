@@ -1,6 +1,6 @@
-package com.atlassian.ta.wiremockpactgenerator.support;
+package com.atlassian.ta.wiremockpactgenerator.e2e.support;
 
-import com.atlassian.ta.wiremockpactgenerator.models.PactHttpBody;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.PactHttpBody;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;

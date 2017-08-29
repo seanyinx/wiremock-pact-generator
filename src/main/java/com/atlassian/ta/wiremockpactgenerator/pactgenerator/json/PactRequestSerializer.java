@@ -1,6 +1,6 @@
-package com.atlassian.ta.wiremockpactgenerator.json;
+package com.atlassian.ta.wiremockpactgenerator.pactgenerator.json;
 
-import com.atlassian.ta.wiremockpactgenerator.models.PactRequest;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.PactRequest;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;

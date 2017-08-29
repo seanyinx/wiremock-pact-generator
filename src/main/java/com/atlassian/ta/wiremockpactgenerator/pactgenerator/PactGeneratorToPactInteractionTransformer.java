@@ -1,11 +1,10 @@
 package com.atlassian.ta.wiremockpactgenerator.pactgenerator;
 
-import com.atlassian.ta.wiremockpactgenerator.models.PactInteraction;
-import com.atlassian.ta.wiremockpactgenerator.models.PactRequest;
-import com.atlassian.ta.wiremockpactgenerator.models.PactResponse;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.PactInteraction;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.PactRequest;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.PactResponse;
 
 import java.util.AbstractMap;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PactGeneratorToPactInteractionTransformer {
-    private static final List<String> IGNORE_REQUEST_HEADERS = Arrays.asList("host");
+    private static final List<String> IGNORE_REQUEST_HEADERS = Collections.singletonList("host");
     private static final List<String> IGNORE_RESPONSE_HEADERS = Collections.emptyList();
 
     private PactGeneratorToPactInteractionTransformer() {
@@ -29,13 +28,10 @@ public class PactGeneratorToPactInteractionTransformer {
     }
 
     private static PactRequest toPactRequest(final PactGeneratorRequest request) {
-        final String[] pathAndQuery = splitPathAndQuery(request.getUrl());
-        final String method = request.getMethod().toUpperCase();
-
         return new PactRequest(
-                method,
-                pathAndQuery[0],
-                pathAndQuery[1],
+                request.getMethod().toUpperCase(),
+                request.getPath(),
+                request.getQuery(),
                 getProcessedHeaders(request.getHeaders(), IGNORE_REQUEST_HEADERS),
                 normalizeBody(request.getBody()));
     }
@@ -45,16 +41,6 @@ public class PactGeneratorToPactInteractionTransformer {
                 response.getStatus(),
                 getProcessedHeaders(response.getHeaders(), IGNORE_RESPONSE_HEADERS),
                 normalizeBody(response.getBody()));
-    }
-
-    private static String[] splitPathAndQuery(final String url) {
-        final int queryLocation = url.indexOf('?');
-
-        if (queryLocation != -1) {
-            return new String[] {url.substring(0, queryLocation), url.substring(queryLocation + 1)};
-        }
-
-        return new String[] {url, null};
     }
 
     private static Map<String, String> getProcessedHeaders(final Map<String, List<String>> rawHeaders,

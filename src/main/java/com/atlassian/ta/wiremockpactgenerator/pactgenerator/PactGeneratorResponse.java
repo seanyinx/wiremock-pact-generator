@@ -27,28 +27,30 @@ public class PactGeneratorResponse {
     }
 
     public static class Builder {
-        private int status;
-        private String body;
-        private Map<String, List<String>> headers;
+        private final int status;
+        private final String body;
+        private final Map<String, List<String>> headers;
 
         public Builder() {
-            headers = null;
-            body = null;
+            this(0, null, null);
+        }
+
+        private Builder(final int status, final String body, final Map<String, List<String>> headers) {
+            this.status = status;
+            this.body = body;
+            this.headers = Headers.cloneHeaders(headers);
         }
 
         public Builder withStatus(final int status) {
-            this.status = status;
-            return this;
+            return new Builder(status, body, headers);
         }
 
         public Builder withBody(final String body) {
-            this.body = body;
-            return this;
+            return new Builder(status, body, headers);
         }
 
         public Builder withHeaders(final Map<String, List<String>> headers) {
-            this.headers = headers;
-            return this;
+            return new Builder(status, body, headers);
         }
 
         public PactGeneratorResponse build() {

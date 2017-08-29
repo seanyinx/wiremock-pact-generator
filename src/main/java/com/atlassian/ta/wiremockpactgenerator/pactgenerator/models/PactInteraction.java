@@ -1,4 +1,4 @@
-package com.atlassian.ta.wiremockpactgenerator.models;
+package com.atlassian.ta.wiremockpactgenerator.pactgenerator.models;
 
 public class PactInteraction {
     private final String description;

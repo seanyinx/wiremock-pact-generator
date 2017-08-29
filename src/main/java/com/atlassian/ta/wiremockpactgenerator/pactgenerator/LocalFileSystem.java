@@ -1,4 +1,4 @@
-package com.atlassian.ta.wiremockpactgenerator;
+package com.atlassian.ta.wiremockpactgenerator.pactgenerator;
 
 import java.io.IOException;
 import java.nio.charset.Charset;

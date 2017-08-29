@@ -9,23 +9,28 @@ import com.github.tomakehurst.wiremock.http.RequestListener;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.Response;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class WireMockPactGenerator implements RequestListener {
-    private final String consumerName;
-    private final String providerName;
+    private final WireMockPactGeneratorUserOptions userOptions;
 
-    public WireMockPactGenerator(final String consumerName, final String providerName) {
-        this.consumerName = consumerName;
-        this.providerName = providerName;
+    public static Builder builder(final String consumerName, final String providerName) {
+        return new Builder(consumerName, providerName);
+    }
+
+    private WireMockPactGenerator(final WireMockPactGeneratorUserOptions userOptions) {
+        this.userOptions = userOptions;
     }
 
     @Override
     public void requestReceived(final Request request, final Response response) {
         try {
-            saveInteraction(request, response);
+            processInteraction(request, response);
         } catch (final RuntimeException exception) {
             System.err.println("WireMock Pact Generator: unexpected error. Forcing system exit.");
             exception.printStackTrace();
@@ -34,10 +39,10 @@ public class WireMockPactGenerator implements RequestListener {
     }
 
     public String getPactLocation() {
-        return PactGeneratorRegistry.getPactLocation(consumerName, providerName);
+        return PactGeneratorRegistry.getPactLocation(userOptions);
     }
 
-    private void saveInteraction(final Request request, final Response response) {
+    private void processInteraction(final Request request, final Response response) {
         final PactGeneratorRequest.Builder requestBuilder = new PactGeneratorRequest.Builder()
                 .withMethod(request.getMethod().value())
                 .withUrl(request.getUrl())
@@ -49,9 +54,8 @@ public class WireMockPactGenerator implements RequestListener {
                 .withHeaders(extractHeaders(response.getHeaders()))
                 .withBody(response.getBodyAsString());
 
-        PactGeneratorRegistry.saveInteraction(
-                consumerName,
-                providerName,
+        PactGeneratorRegistry.processInteraction(
+                userOptions,
                 requestBuilder.build(),
                 responseBuilder.build()
         );
@@ -64,5 +68,35 @@ public class WireMockPactGenerator implements RequestListener {
             headers.put(header.key(), header.values());
         }
         return headers;
+    }
+
+    public static class Builder {
+        private final List<String> requestPathWhitelist;
+        private final String consumerName;
+        private final String providerName;
+
+        private Builder(final String consumerName, final String providerName) {
+            this(consumerName, providerName, Collections.emptyList());
+        }
+
+        private Builder(final String consumerName,
+                        final String providerName,
+                        final List<String> requestPathWhitelist) {
+            this.requestPathWhitelist = requestPathWhitelist;
+            this.consumerName = consumerName;
+            this.providerName = providerName;
+        }
+
+        public Builder withRequestPathWhitelist(final String... regexPatterns) {
+            final List<String> copyOfRequestPathWhitelist = new ArrayList<>(requestPathWhitelist);
+            copyOfRequestPathWhitelist.addAll(Arrays.asList(regexPatterns));
+            return new Builder(consumerName, providerName, copyOfRequestPathWhitelist);
+        }
+
+        public WireMockPactGenerator build() {
+            final WireMockPactGeneratorUserOptions userOptions =
+                    new WireMockPactGeneratorUserOptions(consumerName, providerName, requestPathWhitelist);
+            return new WireMockPactGenerator(userOptions);
+        }
     }
 }

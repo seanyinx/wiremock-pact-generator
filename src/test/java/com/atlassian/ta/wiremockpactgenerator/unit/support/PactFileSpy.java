@@ -1,6 +1,7 @@
-package com.atlassian.ta.wiremockpactgenerator.support;
+package com.atlassian.ta.wiremockpactgenerator.unit.support;
 
-import com.atlassian.ta.wiremockpactgenerator.FileSystem;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.FileSystem;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -10,13 +11,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-public class PactSpy {
+public class PactFileSpy {
 
     private final FileSystem fileSystem;
 
-    public PactSpy(final FileSystem fileSystem) {
+    public PactFileSpy(final FileSystem fileSystem) {
         this.fileSystem = fileSystem;
     }
 
@@ -82,6 +84,18 @@ public class PactSpy {
         return jsonCaptor.getValue();
     }
 
+    public void verifyNoInteractionsSaved() {
+        try {
+            verify(fileSystem, never()).saveFile(anyString(), anyString());
+        } catch (final Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public int interactionCount() {
+        return getInteractions().size();
+    }
+
     private JsonObject firstRequest() {
         return getInteraction(0).getAsJsonObject("request");
     }
@@ -106,7 +120,11 @@ public class PactSpy {
         return new JsonParser().parse(jsonPact()).getAsJsonObject();
     }
 
+    private JsonArray getInteractions() {
+        return getPactAsJson().getAsJsonArray("interactions");
+    }
+
     private JsonObject getInteraction(final int index) {
-        return getPactAsJson().getAsJsonArray("interactions").get(index).getAsJsonObject();
+        return getInteractions().get(index).getAsJsonObject();
     }
 }

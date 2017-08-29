@@ -1,11 +1,11 @@
 package com.atlassian.ta.wiremockpactgenerator.unit;
 
-import com.atlassian.ta.wiremockpactgenerator.FileSystem;
-import com.atlassian.ta.wiremockpactgenerator.IdGenerator;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.FileSystem;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.IdGenerator;
 import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactGeneratorRequest;
 import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactGeneratorResponse;
-import com.atlassian.ta.wiremockpactgenerator.support.InteractionBuilder;
-import com.atlassian.ta.wiremockpactgenerator.support.PactSpy;
+import com.atlassian.ta.wiremockpactgenerator.unit.support.PactGeneratorInvocation;
+import com.atlassian.ta.wiremockpactgenerator.unit.support.PactFileSpy;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.junit.Before;
@@ -17,6 +17,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.function.Consumer;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -24,25 +25,10 @@ import static org.hamcrest.core.IsEqual.equalTo;
 
 @RunWith(Parameterized.class)
 public class JsonBodySerializationTest {
+    enum HttpMessageType {REQUEST, RESPONSE}
 
-    public enum HttpMessageType {REQUEST, RESPONSE}
-
-    private final HttpMessageType httpMessageType;
-
-    @Mock
-    private FileSystem fileSystem;
-
-    @Mock
-    private IdGenerator idGenerator;
-
-    private InteractionBuilder interactionBuilder;
-    private PactSpy pactSpy;
-
-    @Before
-    public void beforeEach() {
-        MockitoAnnotations.initMocks(this);
-        interactionBuilder = new InteractionBuilder(fileSystem, idGenerator);
-        pactSpy = new PactSpy(fileSystem);
+    interface Function<T> {
+        T apply();
     }
 
     @Parameterized.Parameters(name = "{0} body serialization")
@@ -50,8 +36,59 @@ public class JsonBodySerializationTest {
         return Arrays.asList(HttpMessageType.REQUEST, HttpMessageType.RESPONSE);
     }
 
-    public JsonBodySerializationTest(final HttpMessageType httpMessageType) {
-        this.httpMessageType = httpMessageType;
+    @Parameterized.Parameter
+    public HttpMessageType httpMessageType;
+
+    @Mock
+    private FileSystem fileSystem;
+
+    @Mock
+    private IdGenerator idGenerator;
+
+    private PactGeneratorInvocation pactGeneratorInvocation;
+    private PactFileSpy pactFileSpy;
+    private Consumer<String> whenHttpMessageInInteractionContainsBody;
+    private Function<JsonElement> getCapturedBody;
+
+    @Before
+    public void beforeEach() {
+        MockitoAnnotations.initMocks(this);
+        pactGeneratorInvocation = new PactGeneratorInvocation(fileSystem, idGenerator);
+        pactFileSpy = new PactFileSpy(fileSystem);
+        setHelpersForHttpMessageType();
+    }
+
+    private void setHelpersForHttpMessageType() {
+        if (httpMessageType == HttpMessageType.REQUEST) {
+            setHelpersForRequest();
+        } else {
+            setHelpersForResponse();
+        }
+    }
+
+    private void setHelpersForRequest() {
+        whenHttpMessageInInteractionContainsBody = (body) ->
+                pactGeneratorInvocation
+                        .withRequest(
+                                new PactGeneratorRequest.Builder()
+                                        .withMethod("POST")
+                                        .withUrl("/path")
+                                        .withBody(body)
+                                        .build())
+                        .invokeProcess();
+        getCapturedBody = () -> pactFileSpy.firstRequestBodyAsJson();
+    }
+
+    private void setHelpersForResponse() {
+        whenHttpMessageInInteractionContainsBody = (body) ->
+                pactGeneratorInvocation
+                        .withResponse(
+                                new PactGeneratorResponse.Builder()
+                                        .withStatus(200)
+                                        .withBody(body)
+                                        .build())
+                        .invokeProcess();
+        getCapturedBody = () -> pactFileSpy.firstResponseBodyAsJson();
     }
 
     @Test
@@ -181,39 +218,10 @@ public class JsonBodySerializationTest {
     }
 
     private JsonElement getCapturedBody() {
-        switch (httpMessageType) {
-            case REQUEST:
-                return pactSpy.firstRequestBodyAsJson();
-            case RESPONSE:
-                return pactSpy.firstResponseBodyAsJson();
-            default:
-                throw new RuntimeException("httpMessageType is null. this should never happen");
-        }
+        return getCapturedBody.apply();
     }
 
     private void whenHttpMessageInInteractionContainsBody(final String body) {
-        switch (httpMessageType) {
-            case REQUEST:
-                interactionBuilder
-                        .withRequest(
-                                new PactGeneratorRequest.Builder()
-                                        .withMethod("POST")
-                                        .withUrl("/path")
-                                        .withBody(body)
-                                        .build()
-                        ).perform();
-                break;
-            case RESPONSE:
-                interactionBuilder
-                        .withResponse(
-                                new PactGeneratorResponse.Builder()
-                                        .withStatus(200)
-                                        .withBody(body)
-                                        .build()
-                        ).perform();
-                break;
-            default:
-                throw new RuntimeException("httpMessageType is null. this should never happen");
-        }
+        whenHttpMessageInInteractionContainsBody.accept(body);
     }
 }

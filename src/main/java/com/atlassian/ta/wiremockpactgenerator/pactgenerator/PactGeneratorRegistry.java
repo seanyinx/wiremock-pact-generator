@@ -1,48 +1,39 @@
 package com.atlassian.ta.wiremockpactgenerator.pactgenerator;
 
-import com.atlassian.ta.wiremockpactgenerator.Config;
-import com.atlassian.ta.wiremockpactgenerator.FileSystem;
-import com.atlassian.ta.wiremockpactgenerator.IdGenerator;
-import com.atlassian.ta.wiremockpactgenerator.LocalFileSystem;
-import com.atlassian.ta.wiremockpactgenerator.UuidGenerator;
-import com.google.common.collect.Maps;
+import com.atlassian.ta.wiremockpactgenerator.WireMockPactGeneratorUserOptions;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public final class PactGeneratorRegistry {
-    private static final Map<String, PactGenerator> instances = Maps.newHashMap();
+    private static final Map<String, PactGenerator> instances = new HashMap<>();
     private static final FileSystem fileSystem = new LocalFileSystem();
     private static final IdGenerator idGenerator = new UuidGenerator();
 
     private PactGeneratorRegistry() {
     }
 
-    public static synchronized void saveInteraction(
-            final String consumerName,
-            final String providerName,
+    public static synchronized void processInteraction(
+            final WireMockPactGeneratorUserOptions userOptions,
             final PactGeneratorRequest request,
             final PactGeneratorResponse response
     ) {
-        final PactGenerator pactGenerator = getInstance(consumerName, providerName);
-        pactGenerator.saveInteraction(request, response);
+        final PactGeneratorInteraction interaction =
+                new PactGeneratorInteraction(request, response, userOptions.getRequestPathWhitelist());
+        getInstance(userOptions).process(interaction);
     }
 
-    public static synchronized String getPactLocation(final String consumerName, final String providerName) {
-        final PactGenerator pactGenerator = getInstance(consumerName, providerName);
-        return pactGenerator.getPactLocation();
+    public static synchronized String getPactLocation(final WireMockPactGeneratorUserOptions userOptions) {
+        return getInstance(userOptions).getPactLocation();
     }
 
-    private static PactGenerator getInstance(final String consumerName, final String providerName) {
+    private static PactGenerator getInstance(final WireMockPactGeneratorUserOptions userOptions) {
+        final String consumerName = userOptions.getConsumerName();
+        final String providerName = userOptions.getProviderName();
         final String key = String.format("consumer-%s-provider-%s", consumerName, providerName);
 
         if (!instances.containsKey(key)) {
-            instances.put(key, PactGeneratorFactory.createPactGenerator(new Config.Builder()
-                    .withConsumerName(consumerName)
-                    .withProviderName(providerName)
-                    .withFileSystem(fileSystem)
-                    .withIdGenerator(idGenerator)
-                    .build()
-            ));
+            instances.put(key, new PactGenerator(consumerName, providerName, fileSystem, idGenerator));
         }
 
         return instances.get(key);
