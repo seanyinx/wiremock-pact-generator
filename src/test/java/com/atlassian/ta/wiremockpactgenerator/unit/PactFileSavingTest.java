@@ -3,8 +3,8 @@ package com.atlassian.ta.wiremockpactgenerator.unit;
 import com.atlassian.ta.wiremockpactgenerator.Config;
 import com.atlassian.ta.wiremockpactgenerator.FileSystem;
 import com.atlassian.ta.wiremockpactgenerator.IdGenerator;
-import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactGenerator;
 import com.atlassian.ta.wiremockpactgenerator.WireMockPactGeneratorException;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactGenerator;
 import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactGeneratorFactory;
 import com.atlassian.ta.wiremockpactgenerator.support.InteractionBuilder;
 import org.hamcrest.Matcher;
@@ -19,14 +19,13 @@ import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 public class PactFileSavingTest {
 
@@ -57,12 +56,14 @@ public class PactFileSavingTest {
     }
 
     @Test
-    public void shouldGenerateANewIdForEveryPactGeneratorInstance() {
-        whenPactGeneratorIsCreated();
-        verify(idGenerator, times(1)).generate();
+    public void shouldGenerateANewFileNameForEveryPactGeneratorInstance() {
+        givenGeneratedId("123");
+        final PactGenerator pactGenerator1 = whenPactGeneratorIsCreated("aConsumer", "aProvider");
+        givenGeneratedId("456");
+        final PactGenerator pactGenerator2 = whenPactGeneratorIsCreated("aConsumer", "aProvider");
 
-        whenPactGeneratorIsCreated();
-        verify(idGenerator, times(2)).generate();
+        assertThat(pactGenerator1.getPactLocation(), equalTo("target/pacts/aConsumer-aProvider-123-pact.json"));
+        assertThat(pactGenerator2.getPactLocation(), equalTo("target/pacts/aConsumer-aProvider-456-pact.json"));
     }
 
     @Test
@@ -199,10 +200,6 @@ public class PactFileSavingTest {
 
     private void givenGeneratedId(final String id) {
         given(idGenerator.generate()).willAnswer(invocation -> id);
-    }
-
-    private PactGenerator whenPactGeneratorIsCreated() {
-        return whenPactGeneratorIsCreated("defaultConsumer", "defaultProvider");
     }
 
     private PactGenerator whenPactGeneratorIsCreated(final String consumerName, final String providerName) {
