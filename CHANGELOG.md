@@ -1,3 +1,24 @@
+<a name="0.1.0"></a>
+# [0.1.0](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v0.0.6...v0.1.0) (2017-09-01)
+
+
+### Features
+
+* add interaction filtering support ([7e098d0](https://bitbucket.org/atlassian/wiremock-pact-generator/commits/7e098d0))
+
+
+### BREAKING CHANGES
+
+* The api to create a WireMockPactGenerator has been changed to cater for passing request path filters.
+
+To migrate change this:
+wireMockServer.addMockServiceRequestListener(new WireMockPactGenerator("the-consumer", "the-provider"));
+
+To this:
+wireMockServer.addMockServiceRequestListener(WireMockPactGenerator.builder("the-consumer", "the-provider").build());
+
+
+
 <a name="0.0.6"></a>
 ## [0.0.6](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v0.0.5...v0.0.6) (2017-08-23)
 
