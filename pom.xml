@@ -10,7 +10,7 @@
 
     <groupId>com.atlassian.ta</groupId>
     <artifactId>wiremock-pact-generator</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>1.0.0</version>
 
     <name>Wiremock Pact Generator</name>
     <description>Generation of Pact files from the live interactions of WireMock stubs.</description>
@@ -33,7 +33,7 @@
         <connection>scm:git:ssh://git@bitbucket.org/atlassian/wiremock-pact-generator.git</connection>
         <developerConnection>scm:git:ssh://git@bitbucket.org/atlassian/wiremock-pact-generator.git</developerConnection>
         <url>https://bitbucket.org/atlassian/wiremock-pact-generator/src</url>
-      <tag>HEAD</tag>
+      <tag>v1.0.0</tag>
     </scm>
 
     <developers>
