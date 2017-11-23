@@ -11,7 +11,7 @@ Lists of 58 third-party dependencies.
      (Lesser General Public License (LGPL), version 3) (The Apache Software License, Version 2.0) json-schema-core (com.github.java-json-tools:json-schema-core:1.2.8 - https://github.com/java-json-tools/json-schema-core)
      (Lesser General Public License (LGPL), version 3) (The Apache Software License, Version 2.0) json-schema-validator (com.github.java-json-tools:json-schema-validator:2.2.8 - https://github.com/box-metadata/json-schema-validator)
      (The Apache Software License, Version 2.0) Handlebars (com.github.jknack:handlebars:4.0.6 - https://github.com/jknack/handlebars.java/handlebars)
-     (The Apache Software License, Version 2.0) WireMock (com.github.tomakehurst:wiremock:2.7.1 - http://wiremock.org)
+     (The Apache Software License, Version 2.0) WireMock (com.github.tomakehurst:wiremock:2.11.0 - http://wiremock.org)
      (The Apache Software License, Version 2.0) FindBugs-jsr305 (com.google.code.findbugs:jsr305:3.0.1 - http://findbugs.sourceforge.net/)
      (The Apache Software License, Version 2.0) Gson (com.google.code.gson:gson:2.8.1 - https://github.com/google/gson/gson)
      (The Apache Software License, Version 2.0) Guava: Google Core Libraries for Java (com.google.guava:guava:20.0 - https://github.com/google/guava/guava)

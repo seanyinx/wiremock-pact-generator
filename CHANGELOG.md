@@ -1,3 +1,13 @@
+<a name="1.0.0"></a>
+# [1.0.0](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v0.1.0...v1.0.0) (2017-11-23)
+
+
+### Bug Fixes
+
+* add support for wiremock from v1.57 to v2.11.0 ([c49bacf](https://bitbucket.org/atlassian/wiremock-pact-generator/commits/c49bacf))
+
+
+
 <a name="0.1.0"></a>
 # [0.1.0](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v0.0.6...v0.1.0) (2017-09-01)
 
