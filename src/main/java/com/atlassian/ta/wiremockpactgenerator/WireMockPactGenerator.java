@@ -52,7 +52,7 @@ public class WireMockPactGenerator implements RequestListener {
         final PactGeneratorResponse.Builder responseBuilder = new PactGeneratorResponse.Builder()
                 .withStatus(response.getStatus())
                 .withHeaders(extractHeaders(response.getHeaders()))
-                .withBody(response.getBodyAsString());
+                .withBody(response.getBody() == null ? "" : response.getBodyAsString());
 
         PactGeneratorRegistry.processInteraction(
                 userOptions,

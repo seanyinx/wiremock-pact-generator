@@ -138,7 +138,8 @@ public class WireMockPactGeneratorTest {
         final ResponseDefinitionBuilder responseDefinition = aResponse()
             .withStatus(200)
             .withHeader("content-type", "text/plain")
-            .withHeader("x-header", "one", "two")
+            .withHeader("x-header", "one")
+            .withHeader("x-header", "two")
             .withBody("response body");
 
         withWireMock(pactGenerator,
@@ -175,6 +176,26 @@ public class WireMockPactGeneratorTest {
         assertThat("interaction.response.body", response.getBody().getValue(), equalTo("response body"));
         assertThat("interaction.response.headers.content-type", responseHeaders.get("content-type"), equalTo("text/plain"));
         assertThat("interaction.response.headers.x-header", responseHeaders.get("x-header"), equalTo("one, two"));
+    }
+
+    @Test
+    public void shouldGenerateAnInteractionEvenWhenTheRequestDoesNotMatchAnyWireMockStubbing() {
+        final WireMockPactGenerator wireMockPactGenerator = WireMockPactGenerator
+                .builder(uniqueName("consumer"), uniqueName("provider")).build();
+
+        withWireMock(wireMockPactGenerator,
+            wireMockServer -> { },
+            wireMockServer -> performRequest(
+                    Unirest.get(urlForPath(wireMockServer, "/some/path")).getHttpRequest()
+            )
+        );
+
+        final Pact pact = loadPact(wireMockPactGenerator.getPactLocation());
+        final PactInteraction interaction = pact.getInteractions().get(0);
+        final PactRequest request = interaction.getRequest();
+        final PactResponse response = interaction.getResponse();
+        assertThat("interaction.request.path", request.getPath(), equalTo("/some/path"));
+        assertThat("interaction.response.status", response.getStatus(), equalTo(404));
     }
 
     @Test

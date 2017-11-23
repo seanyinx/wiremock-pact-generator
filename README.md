@@ -8,7 +8,7 @@
 
 ## Requirements
 - Java 1.8 or higher
-- WireMock 2.7.1 or higher
+- WireMock 1.57 or higher
 
 ## Installation
 
