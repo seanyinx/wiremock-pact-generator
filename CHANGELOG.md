@@ -1,3 +1,13 @@
+<a name="1.1.0"></a>
+# [1.1.0](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v1.0.0...v1.1.0) (2017-12-13)
+
+
+### Features
+
+* warning in description of interaction with non-configured response ([a6b0265](https://bitbucket.org/atlassian/wiremock-pact-generator/commits/a6b0265))
+
+
+
 <a name="1.0.0"></a>
 # [1.0.0](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v0.1.0...v1.0.0) (2017-11-23)
 
