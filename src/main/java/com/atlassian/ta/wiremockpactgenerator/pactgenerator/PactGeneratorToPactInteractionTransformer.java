@@ -40,7 +40,8 @@ public class PactGeneratorToPactInteractionTransformer {
         return new PactResponse(
                 response.getStatus(),
                 getProcessedHeaders(response.getHeaders(), IGNORE_RESPONSE_HEADERS),
-                normalizeBody(response.getBody()));
+                normalizeBody(response.getBody()),
+                response.isConfigured());
     }
 
     private static Map<String, String> getProcessedHeaders(final Map<String, List<String>> rawHeaders,
@@ -67,6 +68,9 @@ public class PactGeneratorToPactInteractionTransformer {
     }
 
     private static String getDescription(final PactRequest pactRequest, final PactResponse pactResponse) {
-        return String.format("%s %s -> %s", pactRequest.getMethod(), pactRequest.getPath(), pactResponse.getStatus());
+        final String notConfiguredWarningOrEmpty = pactResponse.isConfigured() ? "" : " [Not configured in WireMock]";
+
+        return String.format("%s %s -> %s%s", pactRequest.getMethod(),
+                pactRequest.getPath(), pactResponse.getStatus(), notConfiguredWarningOrEmpty);
     }
 }

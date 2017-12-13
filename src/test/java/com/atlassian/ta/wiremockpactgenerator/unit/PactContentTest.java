@@ -401,10 +401,29 @@ public class PactContentTest {
                 .withResponse(
                         aDefaultResponse()
                                 .withStatus(202)
+                                .withIsConfiguredResponse(true)
                                 .build())
                 .invokeProcess();
 
         assertThat(pactFileSpy.firstInteractionDescription(), equalTo("GET /path -> 202"));
+    }
+
+    @Test
+    public void shouldShowInTheInteractionDescriptionIfTheResponseWasNotConfigured() {
+        pactGeneratorInvocation
+                .withRequest(
+                        aDefaultRequest()
+                                .withMethod("GET")
+                                .withUrl("/path")
+                                .build())
+                .withResponse(
+                        aDefaultResponse()
+                                .withStatus(404)
+                                .withIsConfiguredResponse(false)
+                                .build())
+                .invokeProcess();
+
+        assertThat(pactFileSpy.firstInteractionDescription(), equalTo("GET /path -> 404 [Not configured in WireMock]"));
     }
 
     @Test
@@ -433,7 +452,8 @@ public class PactContentTest {
 
     private PactGeneratorResponse.Builder aDefaultResponse() {
         return new PactGeneratorResponse.Builder()
-                .withStatus(200);
+                .withStatus(200)
+                .withIsConfiguredResponse(true);
     }
 
     private void expectAWireMockPactGeneratorException(final String message) {

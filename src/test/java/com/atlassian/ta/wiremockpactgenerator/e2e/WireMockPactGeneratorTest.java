@@ -174,7 +174,8 @@ public class WireMockPactGeneratorTest {
         assertThat("interaction.request.headers.accept", requestHeaders.get("accept"), equalTo("text/plain"));
         assertThat("interaction.response.status", response.getStatus(), equalTo(200));
         assertThat("interaction.response.body", response.getBody().getValue(), equalTo("response body"));
-        assertThat("interaction.response.headers.content-type", responseHeaders.get("content-type"), equalTo("text/plain"));
+        assertThat("interaction.response.headers.content-type",
+                responseHeaders.get("content-type"), equalTo("text/plain"));
         assertThat("interaction.response.headers.x-header", responseHeaders.get("x-header"), equalTo("one, two"));
     }
 
@@ -194,6 +195,8 @@ public class WireMockPactGeneratorTest {
         final PactInteraction interaction = pact.getInteractions().get(0);
         final PactRequest request = interaction.getRequest();
         final PactResponse response = interaction.getResponse();
+        assertThat("interaction.description",
+                interaction.getDescription(), equalTo("GET /some/path -> 404 [Not configured in WireMock]"));
         assertThat("interaction.request.path", request.getPath(), equalTo("/some/path"));
         assertThat("interaction.response.status", response.getStatus(), equalTo(404));
     }
