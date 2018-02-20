@@ -3,16 +3,21 @@ package com.atlassian.ta.wiremockpactgenerator.pactgenerator;
 import java.util.List;
 import java.util.regex.Pattern;
 
-class InteractionFilter {
-    static boolean isRequestWhitelisted(final List<Pattern> requestPathWhitelist, final PactGeneratorRequest request) {
-        return requestPathWhitelist.isEmpty() || pathMatchesWhitelist(request.getPath(), requestPathWhitelist);
+public class InteractionFilter {
+    private final List<Pattern> requestPathWhitelist;
+    private final List<Pattern> requestPathBlacklist;
+
+    public InteractionFilter(final List<Pattern> requestPathWhitelist, final List<Pattern> requestPathBlacklist) {
+        this.requestPathWhitelist = requestPathWhitelist;
+        this.requestPathBlacklist = requestPathBlacklist;
     }
 
-    private static boolean pathMatchesWhitelist(final String path, final List<Pattern> whitelist) {
-        return whitelist.stream().anyMatch(pattern -> pattern.matcher(path).matches());
+    public boolean isRequestAccepted(final PactGeneratorRequest request) {
+        return (requestPathWhitelist.isEmpty() || pathMatchesAnyPattern(request.getPath(), requestPathWhitelist)) &&
+                !pathMatchesAnyPattern(request.getPath(), requestPathBlacklist);
     }
 
-    private InteractionFilter() {
-
+    private static boolean pathMatchesAnyPattern(final String path, final List<Pattern> patternList) {
+        return patternList.stream().anyMatch(pattern -> pattern.matcher(path).matches());
     }
 }

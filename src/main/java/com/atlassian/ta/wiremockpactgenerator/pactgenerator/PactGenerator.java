@@ -20,8 +20,9 @@ public class PactGenerator {
     public void process(final PactGeneratorInteraction interaction) {
         final PactGeneratorRequest request = interaction.getRequest();
         final PactGeneratorResponse response = interaction.getResponse();
+        final InteractionFilter interactionFilter = interaction.getInteractionFilter();
 
-        if (!InteractionFilter.isRequestWhitelisted(interaction.getRequestPathWhitelist(), request)) {
+        if (!interactionFilter.isRequestAccepted(request)) {
             return;
         }
 

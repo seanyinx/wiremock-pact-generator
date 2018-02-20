@@ -105,7 +105,7 @@ public class PactPathFiltersTest {
     }
 
     @Test
-    public void shouldNotConsiderTheQueryStringInTheMatching() {
+    public void shouldNotConsiderTheQueryStringInTheWhitelistMatching() {
         pactGeneratorInvocation
                 .withWhitelist(".*/ends-with/path")
                 .withRequest(
@@ -117,7 +117,7 @@ public class PactPathFiltersTest {
     }
 
     @Test
-    public void shouldNotIncludeTheUriFragmentInTheMatching() {
+    public void shouldNotIncludeTheUriFragmentInTheWhitelistMatching() {
         pactGeneratorInvocation
                 .withWhitelist(".*/ends-with/path")
                 .withRequest(
@@ -142,13 +142,85 @@ public class PactPathFiltersTest {
     }
 
     @Test
-    public void shouldFailIfPatternIsInvalid() {
+    public void shouldFailIfWhitelistPatternIsInvalid() {
         expectAWireMockPactGeneratorException(
                 equalTo("Invalid regex pattern in request path whitelist"),
                 instanceOf(RuntimeException.class)
         );
 
         pactGeneratorInvocation.withWhitelist("*/invalid").invokeProcess();
+    }
+
+    @Test
+    public void shouldNotSaveTheInteraction_whenRequestPathInBlacklist() {
+        pactGeneratorInvocation
+                .withBlacklist("/blacklisted/.*")
+                .withRequest(
+                        aDefaultRequest()
+                            .withUrl("/blacklisted/path")
+                            .build())
+                .invokeProcess();
+        pactFileSpy.verifyNoInteractionsSaved();
+    }
+
+    @Test
+    public void shouldSaveTheInteraction_whenRequestPathNotInBlacklist() {
+        pactGeneratorInvocation
+                .withBlacklist("/blacklisted/.*")
+                .withRequest(
+                        aDefaultRequest()
+                                .withUrl("/not/blacklisted/path")
+                                .build())
+                .invokeProcess();
+        assertThat(pactFileSpy.interactionCount(), is(1));
+    }
+
+    @Test
+    public void shouldNotSaveTheInteraction_whenRequestPathMatchesAtLeastOneItemInBlacklist() {
+        pactGeneratorInvocation
+                .withBlacklist("/blacklisted/.*", ".*/forbidden/.*")
+                .withRequest(
+                        aDefaultRequest()
+                                .withUrl("/a/forbidden/path")
+                                .build())
+                .invokeProcess();
+        pactFileSpy.verifyNoInteractionsSaved();
+    }
+
+    @Test
+    public void shouldNotSaveTheInteraction_whenRequestPathMatchesBothWhitelistAndBlacklist() {
+        pactGeneratorInvocation
+                .withBlacklist("/some/path/.*")
+                .withWhitelist("/some/path/.*")
+                .withRequest(
+                        aDefaultRequest()
+                                .withUrl("/some/path/resource")
+                                .build())
+                .invokeProcess();
+        pactFileSpy.verifyNoInteractionsSaved();
+    }
+
+    @Test
+    public void shouldSaveTheInteraction_whenRequestPathMatchesWhitelistButNotBlacklist() {
+        pactGeneratorInvocation
+                .withWhitelist("/accept/all/.*")
+                .withBlacklist("/accept/all/but/this/.*")
+                .withRequest(
+                        aDefaultRequest()
+                                .withUrl("/accept/all/please")
+                                .build())
+                .invokeProcess();
+        assertThat(pactFileSpy.interactionCount(), is(1));
+    }
+
+    @Test
+    public void shouldFailIfBlacklistPatternIsInvalid() {
+        expectAWireMockPactGeneratorException(
+                equalTo("Invalid regex pattern in request path blacklist"),
+                instanceOf(RuntimeException.class)
+        );
+
+        pactGeneratorInvocation.withBlacklist("*/invalid").invokeProcess();
     }
 
     private PactGeneratorRequest.Builder aDefaultRequest() {

@@ -59,7 +59,8 @@ pact files in the `build/pacts` directory.
 
 ### Filtering interactions
 
-You can provide request path Regex matchers to tell WireMockPactGenerator which pact interactions should be saved.
+You can provide request path Regex matchers to tell WireMockPactGenerator which pact interactions should be saved
+(whitelist) or skipped (blacklist).
 
 ```java
 myWireMockServer.addMockServiceRequestListener(
@@ -68,13 +69,28 @@ myWireMockServer.addMockServiceRequestListener(
         .withRequestPathWhitelist(
             "/rest/.*",
             "/v2/api/.*"
-        ).build()
+        )
+        .withRequestPathBlacklist(
+            "/rest/experimental/.*"
+        )
+        .build()
 );
 ...
-myClient.getResource("/rest/resource/123"); // Pact interaction will be generated.
-myClient.getResource("/v2/api/resources/123"); // Pact interaction will be generated.
-myClient.getResource("/internal/api/"); // NO pact interaction will be generated.
+// Pact interaction will be generated: Whitelisted
+myClient.getResource("/rest/resource/123");
+
+// Pact interaction will be generated: Whitelisted.
+myClient.getResource("/v2/api/resources/123");
+
+// NO pact interaction will be generated: Not in whitelist.
+myClient.getResource("/internal/api/"); 
+
+// NO pact interaction will be generated: Whitelisted but also blacklisted.
+myClient.getResource("/rest/experimental/resource"); 
 ``` 
+
+You can combine whitelist and blacklist values to match your needs. By default, when no whitelist or blacklist values
+ are provided, all interactions will be saved.
 
 ## Changelog
 See [CHANGELOG.md](CHANGELOG.md)

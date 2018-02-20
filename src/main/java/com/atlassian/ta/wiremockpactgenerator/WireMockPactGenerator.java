@@ -73,31 +73,44 @@ public class WireMockPactGenerator implements RequestListener {
 
     public static class Builder {
         private final List<String> requestPathWhitelist;
+        private final List<String> requestPathBlacklist;
         private final String consumerName;
         private final String providerName;
 
         private Builder(final String consumerName, final String providerName) {
-            this(consumerName, providerName, Collections.emptyList());
+            this(consumerName, providerName, Collections.emptyList(), Collections.emptyList());
         }
 
         private Builder(final String consumerName,
                         final String providerName,
-                        final List<String> requestPathWhitelist) {
-            this.requestPathWhitelist = requestPathWhitelist;
+                        final List<String> requestPathWhitelist,
+                        final List<String> requestPathBlacklist) {
             this.consumerName = consumerName;
             this.providerName = providerName;
+            this.requestPathWhitelist = requestPathWhitelist;
+            this.requestPathBlacklist = requestPathBlacklist;
         }
 
         public Builder withRequestPathWhitelist(final String... regexPatterns) {
-            final List<String> copyOfRequestPathWhitelist = new ArrayList<>(requestPathWhitelist);
-            copyOfRequestPathWhitelist.addAll(Arrays.asList(regexPatterns));
-            return new Builder(consumerName, providerName, copyOfRequestPathWhitelist);
+            final List<String> newRequestPathWhitelist = extendListWithItems(requestPathWhitelist, regexPatterns);
+            return new Builder(consumerName, providerName, newRequestPathWhitelist, requestPathBlacklist);
+        }
+
+        public Builder withRequestPathBlacklist(final String... regexPatterns) {
+            final List<String> newRequestPathBlacklist = extendListWithItems(requestPathBlacklist, regexPatterns);
+            return new Builder(consumerName, providerName, requestPathWhitelist, newRequestPathBlacklist);
         }
 
         public WireMockPactGenerator build() {
-            final WireMockPactGeneratorUserOptions userOptions =
-                    new WireMockPactGeneratorUserOptions(consumerName, providerName, requestPathWhitelist);
+            final WireMockPactGeneratorUserOptions userOptions = new WireMockPactGeneratorUserOptions(
+                    consumerName, providerName, requestPathWhitelist, requestPathBlacklist);
             return new WireMockPactGenerator(userOptions);
+        }
+
+        private <T> List<T> extendListWithItems(final List<T> original, final T[] items) {
+            final List<T> copyOfOriginal = new ArrayList<>(original);
+            copyOfOriginal.addAll(Arrays.asList(items));
+            return copyOfOriginal;
         }
     }
 }

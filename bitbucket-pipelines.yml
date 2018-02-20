@@ -10,4 +10,5 @@ pipelines:
           - mvn --version
           - mvn -B -P wiremock-1.57 clean verify
           - mvn -B -P wiremock-2.5 clean verify
-          - mvn -B -P wiremock-2.11 clean verify javadoc:jar
+          - mvn -B -P wiremock-2.11 clean verify
+          - mvn -B -P wiremock-2.14 clean verify javadoc:jar

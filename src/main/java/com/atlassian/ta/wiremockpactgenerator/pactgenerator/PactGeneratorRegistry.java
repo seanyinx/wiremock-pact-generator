@@ -19,7 +19,7 @@ public final class PactGeneratorRegistry {
             final PactGeneratorResponse response
     ) {
         final PactGeneratorInteraction interaction =
-                new PactGeneratorInteraction(request, response, userOptions.getRequestPathWhitelist());
+                new PactGeneratorInteraction(request, response, userOptions.getInteractionFilter());
         getInstance(userOptions).process(interaction);
     }
 

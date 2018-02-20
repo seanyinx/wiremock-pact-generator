@@ -65,7 +65,7 @@ public class WireMockPactGeneratorTest {
     }
 
     @Test
-    public void shouldHonorEachWireMockPactGeneratorRequestPathWhitelist() {
+    public void shouldHonorEachWireMockPactGeneratorRequestPathWhitelistAndBlacklist() {
         final String consumer = uniqueName("consumer");
         final String provider = uniqueName("provider");
         final WireMockPactGenerator pactGeneratorForPath1AndPath2 = WireMockPactGenerator
@@ -73,12 +73,18 @@ public class WireMockPactGeneratorTest {
             .withRequestPathWhitelist(
                 "/matches/path-1/.*",
                 "/matches/path-2/.*")
+            .withRequestPathBlacklist(
+                "/matches/path-3/.*"
+            )
             .build();
         final WireMockPactGenerator pactGeneratorForPath3AndPath4 = WireMockPactGenerator
             .builder(consumer, provider)
             .withRequestPathWhitelist(
                 "/matches/path-3/.*",
                 "/matches/path-4/.*")
+            .withRequestPathBlacklist(
+                "/matches/path-1/.*"
+            )
             .build();
 
         withWireMock(
@@ -125,6 +131,28 @@ public class WireMockPactGeneratorTest {
 
         final Pact pact = loadPact(wireMockPactGenerator.getPactLocation());
         assertThat(pact.getInteractions(), hasSize(3));
+    }
+
+    @Test
+    public void shouldCombineRequestPathBlacklists_whenMultipleListsArePassed() {
+        final WireMockPactGenerator wireMockPactGenerator = WireMockPactGenerator
+            .builder(uniqueName("consumer"), uniqueName("provider"))
+            .withRequestPathBlacklist("/matches/path-1/.*")
+            .withRequestPathBlacklist("/matches/path-2/.*", "/matches/path-3/.*")
+            .build();
+
+        withWireMock(wireMockPactGenerator,
+            this::givenAStubForAnyPost,
+            wireMockServer -> {
+                whenAPostRequestToAPathStartingWith(wireMockServer, "/matches/path-1/");
+                whenAPostRequestToAPathStartingWith(wireMockServer, "/matches/path-2/");
+                whenAPostRequestToAPathStartingWith(wireMockServer, "/matches/path-3/");
+                whenAPostRequestToAPathStartingWith(wireMockServer, "/accept/this");
+            });
+
+        final Pact pact = loadPact(wireMockPactGenerator.getPactLocation());
+        assertThat(pact.getInteractions(), hasSize(1));
+        assertThat(pact.getInteractions().get(0).getRequest().getPath(), startsWith("/accept/this"));
     }
 
     @Test
@@ -225,6 +253,18 @@ public class WireMockPactGeneratorTest {
                 "/valid/.*",
                 "*/invalid")
             .build();
+    }
+
+    @Test
+    public void shouldFailRightAway_whenProvidingInvalidRequestPathBlacklistRegex() {
+        expectedException.expect(WireMockPactGeneratorException.class);
+
+        WireMockPactGenerator
+                .builder("consumer", "provider")
+                .withRequestPathBlacklist(
+                        "/valid/.*",
+                        "*/invalid")
+                .build();
     }
 
     private String uniqueName(final String prefix) {

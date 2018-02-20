@@ -1,21 +1,18 @@
 package com.atlassian.ta.wiremockpactgenerator.pactgenerator;
 
-import java.util.List;
-import java.util.regex.Pattern;
-
 public class PactGeneratorInteraction {
     private final PactGeneratorResponse response;
     private final PactGeneratorRequest request;
-    private final List<Pattern> requestPathWhitelist;
+    private final InteractionFilter interactionFilter;
 
     public PactGeneratorInteraction(
             final PactGeneratorRequest request,
             final PactGeneratorResponse response,
-            final List<Pattern> requestPathWhitelist
+            final InteractionFilter interactionFilter
     ) {
         this.response = response;
         this.request = request;
-        this.requestPathWhitelist = requestPathWhitelist;
+        this.interactionFilter = interactionFilter;
     }
 
     public PactGeneratorResponse getResponse() {
@@ -26,7 +23,7 @@ public class PactGeneratorInteraction {
         return request;
     }
 
-    List<Pattern> getRequestPathWhitelist() {
-        return requestPathWhitelist;
+    InteractionFilter getInteractionFilter() {
+        return interactionFilter;
     }
 }
