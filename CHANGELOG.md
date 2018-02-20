@@ -1,3 +1,13 @@
+<a name="1.2.0"></a>
+# [1.2.0](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v1.1.0...v1.2.0) (2018-02-20)
+
+
+### Features
+
+* support interaction filtering via request path blacklist ([46bc112](https://bitbucket.org/atlassian/wiremock-pact-generator/commits/46bc112))
+
+
+
 <a name="1.1.0"></a>
 # [1.1.0](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v1.0.0...v1.1.0) (2017-12-13)
 
