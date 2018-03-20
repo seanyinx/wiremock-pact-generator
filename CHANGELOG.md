@@ -1,3 +1,18 @@
+<a name="2.0.0"></a>
+# [2.0.0](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v1.2.0...v2.0.0) (2018-03-20)
+
+
+### Bug Fixes
+
+* avoid WireMock collision when using with spring-cloud-contract-wiremock ([f90a6ff](https://bitbucket.org/atlassian/wiremock-pact-generator/commits/f90a6ff))
+
+
+### BREAKING CHANGES
+
+* from now on, users need to explicitly specify WireMock dependency in their projects
+
+
+
 <a name="1.2.0"></a>
 # [1.2.0](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v1.1.0...v1.2.0) (2018-02-20)
 
