@@ -1,0 +1,11 @@
+{
+    "extends": ["angular"],
+    "rules": {
+        "header-max-length": [2, "always", 100],
+        "subject-tense": [0, "never"],
+        "footer-tense": [0, "never"],
+        "body-tense": [0, "never"],
+        "lang": [0, "never"],
+        "footer-leading-blank": [0, "never"]
+    }
+}
