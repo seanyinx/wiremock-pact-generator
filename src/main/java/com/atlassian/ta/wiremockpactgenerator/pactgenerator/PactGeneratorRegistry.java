@@ -18,8 +18,8 @@ public final class PactGeneratorRegistry {
             final PactGeneratorRequest request,
             final PactGeneratorResponse response
     ) {
-        final PactGeneratorInteraction interaction =
-                new PactGeneratorInteraction(request, response, userOptions.getInteractionFilter());
+        final PactGeneratorInteraction interaction = new PactGeneratorInteraction(
+                request, response, userOptions.getInteractionFilter(), userOptions.isStrictApplicationJson());
         getInstance(userOptions).process(interaction);
     }
 

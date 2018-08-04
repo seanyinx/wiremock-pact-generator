@@ -12,17 +12,20 @@ public class WireMockPactGeneratorUserOptions {
     private final String providerName;
     private final List<Pattern> requestPathWhitelist;
     private final List<Pattern> requestPathBlacklist;
+    private final boolean strictApplicationJson;
 
     public WireMockPactGeneratorUserOptions(final String consumerName,
                                             final String providerName,
                                             final List<String> requestPathWhitelist,
-                                            final List<String> requestPathBlacklist) {
+                                            final List<String> requestPathBlacklist,
+                                            final boolean strictApplicationJson) {
         this.consumerName = Validation.notNullNorBlank(consumerName, "consumer name");
         this.providerName = Validation.notNullNorBlank(providerName, "provider name");
         this.requestPathWhitelist = this.loadPatternListOption(
                 requestPathWhitelist, "Invalid regex pattern in request path whitelist");
         this.requestPathBlacklist = this.loadPatternListOption(
                 requestPathBlacklist, "Invalid regex pattern in request path blacklist");
+        this.strictApplicationJson = strictApplicationJson;
 
     }
 
@@ -36,6 +39,10 @@ public class WireMockPactGeneratorUserOptions {
 
     public InteractionFilter getInteractionFilter() {
         return new InteractionFilter(requestPathWhitelist, requestPathBlacklist);
+    }
+
+    public boolean isStrictApplicationJson() {
+        return this.strictApplicationJson;
     }
 
     private List<Pattern> loadPatternListOption(final List<String> patternList, final String errorMessage) {

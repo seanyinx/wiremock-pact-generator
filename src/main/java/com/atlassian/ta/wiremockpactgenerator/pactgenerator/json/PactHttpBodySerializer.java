@@ -11,7 +11,7 @@ import com.google.gson.JsonSyntaxException;
 
 import java.lang.reflect.Type;
 
-public class PactHttpBodySerializer implements JsonSerializer<PactHttpBody> {
+public abstract class PactHttpBodySerializer implements JsonSerializer<PactHttpBody> {
     private final JsonParser parser = new JsonParser();
 
     @Override
@@ -24,17 +24,19 @@ public class PactHttpBodySerializer implements JsonSerializer<PactHttpBody> {
             return JsonNull.INSTANCE;
         }
 
-        if (isRFC4627jsonText(bodyValue)) {
+        if (shouldSerializeAsJson(bodyValue)) {
             return parser.parse(bodyValue);
         }
 
         return new JsonPrimitive(bodyValue);
     }
 
-    private boolean isRFC4627jsonText(final String s) {
+    protected abstract boolean shouldSerializeElement(final JsonElement element);
+
+    private boolean shouldSerializeAsJson(final String s) {
         try {
             final JsonElement element = parser.parse(s);
-            return element.isJsonObject() || element.isJsonArray();
+            return shouldSerializeElement(element);
         } catch (final JsonSyntaxException ex) {
             return false;
         }

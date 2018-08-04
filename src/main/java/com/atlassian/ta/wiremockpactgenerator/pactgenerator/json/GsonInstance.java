@@ -11,12 +11,20 @@ public class GsonInstance {
 
     }
 
-    public static Gson gson = new GsonBuilder()
-            .registerTypeAdapter(PactHttpBody.class, new PactHttpBodySerializer())
-            .registerTypeAdapter(PactRequest.class, new PactRequestSerializer())
-            .registerTypeAdapter(PactResponse.class, new PactResponseSerializer())
-            .disableHtmlEscaping()
-            .serializeNulls()
-            .setPrettyPrinting()
+    public static Gson strictGson = GsonInstance.createBaseGsonBuilder()
+            .registerTypeAdapter(PactHttpBody.class, new PactApplicationJsonStrictHttpBodySerializer())
             .create();
+
+    public static Gson nonStrictGson = GsonInstance.createBaseGsonBuilder()
+            .registerTypeAdapter(PactHttpBody.class, new PactApplicationJsonNonStrictHttpBodySerializer())
+            .create();
+
+    private static GsonBuilder createBaseGsonBuilder() {
+        return new GsonBuilder()
+                .registerTypeAdapter(PactRequest.class, new PactRequestSerializer())
+                .registerTypeAdapter(PactResponse.class, new PactResponseSerializer())
+                .disableHtmlEscaping()
+                .serializeNulls()
+                .setPrettyPrinting();
+    }
 }

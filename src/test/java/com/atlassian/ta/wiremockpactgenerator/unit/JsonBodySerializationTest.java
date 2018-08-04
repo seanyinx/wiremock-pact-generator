@@ -46,6 +46,7 @@ public class JsonBodySerializationTest {
     private IdGenerator idGenerator;
 
     private PactGeneratorInvocation pactGeneratorInvocation;
+    private boolean isStrictApplicationJson;
     private PactFileSpy pactFileSpy;
     private Consumer<String> whenHttpMessageInInteractionContainsBody;
     private Function<JsonElement> getCapturedBody;
@@ -53,6 +54,7 @@ public class JsonBodySerializationTest {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
+        isStrictApplicationJson = true;
         pactGeneratorInvocation = new PactGeneratorInvocation(fileSystem, idGenerator);
         pactFileSpy = new PactFileSpy(fileSystem);
         setHelpersForHttpMessageType();
@@ -69,6 +71,7 @@ public class JsonBodySerializationTest {
     private void setHelpersForRequest() {
         whenHttpMessageInInteractionContainsBody = (body) ->
                 pactGeneratorInvocation
+                        .withStrictApplicationJson(isStrictApplicationJson)
                         .withRequest(
                                 new PactGeneratorRequest.Builder()
                                         .withMethod("POST")
@@ -82,6 +85,7 @@ public class JsonBodySerializationTest {
     private void setHelpersForResponse() {
         whenHttpMessageInInteractionContainsBody = (body) ->
                 pactGeneratorInvocation
+                        .withStrictApplicationJson(isStrictApplicationJson)
                         .withResponse(
                                 new PactGeneratorResponse.Builder()
                                         .withStatus(200)
@@ -89,6 +93,10 @@ public class JsonBodySerializationTest {
                                         .build())
                         .invokeProcess();
         getCapturedBody = () -> pactFileSpy.firstResponseBodyAsJson();
+    }
+
+    private void givenStrictApplicationJsonIsDisabled() {
+        isStrictApplicationJson = false;
     }
 
     @Test
@@ -148,6 +156,45 @@ public class JsonBodySerializationTest {
         final JsonElement body = getCapturedBody();
         assertThatIsStringPrimitive(body);
         assertThat(body.getAsString(), equalTo("\"a quoted string\""));
+    }
+
+    @Test
+    public void shouldSerializeBodyAsJson_whenBodyIsAJsonNumberAndStrictApplicationJsonIsDisabled() {
+        givenStrictApplicationJsonIsDisabled();
+        whenHttpMessageInInteractionContainsBody("33");
+
+        final JsonElement body = getCapturedBody();
+        assertThatIsNumberPrimitive(body);
+        assertThat(body.getAsNumber().intValue(), equalTo(33));
+    }
+
+    @Test
+    public void shouldSerializeBodyAsJson_whenBodyIsAJsonBooleanAndStrictApplicationJsonIsDisabled() {
+        givenStrictApplicationJsonIsDisabled();
+        whenHttpMessageInInteractionContainsBody("true");
+
+        final JsonElement body = getCapturedBody();
+        assertThatIsBooleanPrimitive(body);
+        assertThat(body.getAsBoolean(), equalTo(true));
+    }
+
+    @Test
+    public void shouldSerializeBodyAsJson_wheBodyIsAJsonNullAndStrictApplicationJsonIsDisabled() {
+        givenStrictApplicationJsonIsDisabled();
+        whenHttpMessageInInteractionContainsBody("null");
+
+        final JsonElement body = getCapturedBody();
+        assertThatIsNullPrimitive(body);
+    }
+
+    @Test
+    public void shouldSerializeBodyAsJsonString_whenBodyIsAJsonStringAndStrictApplicationJsonIsDisabled() {
+        givenStrictApplicationJsonIsDisabled();
+        whenHttpMessageInInteractionContainsBody("\"a quoted string\"");
+
+        final JsonElement body = getCapturedBody();
+        assertThatIsStringPrimitive(body);
+        assertThat(body.getAsString(), equalTo("a quoted string"));
     }
 
     @Test

@@ -92,6 +92,27 @@ myClient.getResource("/rest/experimental/resource");
 You can combine whitelist and blacklist values to match your needs. By default, when no whitelist or blacklist values
  are provided, all interactions will be saved.
 
+### Non strict application/json serialization
+
+According to [RFC-4627](https://tools.ietf.org/html/rfc4627) Section 2. A valid application/json payload must include as
+root element either a JSON object or a JSON array.
+
+By default WireMock Pact Generator sticks to this rule. This means that when saving pact files for captured request or
+response bodies with contents such as `true`, `null`, `33`, `"a quoted string"`, the values will be saved as strings
+(keeping the quotes in the last example).
+
+However some APIs are not that strict (although this is not recommended), so the default behavior is not desired. In
+those cases you can configure WireMock Pact Generator to allow serialization of every JSON element:
+
+```java
+    WireMockPactGenerator
+        .builder("myConsumer", "myProvider")
+        .withStrictApplicationJson(false)
+```
+
+When strict application/json is disabled, the above examples will be serialized as a boolean, null, a number, a string
+without the quotes.
+
 ## Changelog
 See [CHANGELOG.md](CHANGELOG.md)
 

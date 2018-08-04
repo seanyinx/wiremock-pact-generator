@@ -29,7 +29,7 @@ public class PactGenerator {
         PactGeneratorValidation.validateResponse(response);
         final PactInteraction pactInteraction = PactGeneratorToPactInteractionTransformer.transform(request, response);
         pact.addInteraction(pactInteraction);
-        pactSaver.savePactFile(pact);
+        pactSaver.savePactFile(pact, interaction.isStrictApplicationJson());
     }
 
     public String getPactLocation() {

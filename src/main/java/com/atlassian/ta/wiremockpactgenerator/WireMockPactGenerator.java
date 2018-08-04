@@ -76,34 +76,41 @@ public class WireMockPactGenerator implements RequestListener {
         private final List<String> requestPathBlacklist;
         private final String consumerName;
         private final String providerName;
+        private final boolean strictApplicationJson;
 
         private Builder(final String consumerName, final String providerName) {
-            this(consumerName, providerName, Collections.emptyList(), Collections.emptyList());
+            this(consumerName, providerName, Collections.emptyList(), Collections.emptyList(), true);
         }
 
         private Builder(final String consumerName,
                         final String providerName,
                         final List<String> requestPathWhitelist,
-                        final List<String> requestPathBlacklist) {
+                        final List<String> requestPathBlacklist,
+                        final boolean strictApplicationJson) {
             this.consumerName = consumerName;
             this.providerName = providerName;
             this.requestPathWhitelist = requestPathWhitelist;
             this.requestPathBlacklist = requestPathBlacklist;
+            this.strictApplicationJson = strictApplicationJson;
         }
 
         public Builder withRequestPathWhitelist(final String... regexPatterns) {
             final List<String> newRequestPathWhitelist = extendListWithItems(requestPathWhitelist, regexPatterns);
-            return new Builder(consumerName, providerName, newRequestPathWhitelist, requestPathBlacklist);
+            return new Builder(consumerName, providerName, newRequestPathWhitelist, requestPathBlacklist, strictApplicationJson);
         }
 
         public Builder withRequestPathBlacklist(final String... regexPatterns) {
             final List<String> newRequestPathBlacklist = extendListWithItems(requestPathBlacklist, regexPatterns);
-            return new Builder(consumerName, providerName, requestPathWhitelist, newRequestPathBlacklist);
+            return new Builder(consumerName, providerName, requestPathWhitelist, newRequestPathBlacklist, strictApplicationJson);
+        }
+
+        public Builder withStrictApplicationJson(final boolean strictApplicationJson) {
+            return new Builder(consumerName, providerName, requestPathWhitelist, requestPathBlacklist, strictApplicationJson);
         }
 
         public WireMockPactGenerator build() {
             final WireMockPactGeneratorUserOptions userOptions = new WireMockPactGeneratorUserOptions(
-                    consumerName, providerName, requestPathWhitelist, requestPathBlacklist);
+                    consumerName, providerName, requestPathWhitelist, requestPathBlacklist, strictApplicationJson);
             return new WireMockPactGenerator(userOptions);
         }
 

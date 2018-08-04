@@ -17,6 +17,7 @@ public class PactGeneratorInvocation {
     private final String providerName;
     private final List<String> requestPathWhitelist;
     private final List<String> requestPathBlacklist;
+    private final boolean strictApplicationJson;
     private final FileSystem fileSystem;
     private final IdGenerator idGenerator;
     private final PactGeneratorRequest request;
@@ -28,6 +29,7 @@ public class PactGeneratorInvocation {
                 "default-provider-name",
                 new ArrayList<>(),
                 new ArrayList<>(),
+                true,
                 fileSystem,
                 idGenerator,
                 new PactGeneratorRequest.Builder()
@@ -44,6 +46,7 @@ public class PactGeneratorInvocation {
                                     final String providerName,
                                     final List<String> requestPathWhitelist,
                                     final List<String> requestPathBlacklist,
+                                    final boolean strictApplicationJson,
                                     final FileSystem fileSystem,
                                     final IdGenerator idGenerator,
                                     final PactGeneratorRequest request,
@@ -52,6 +55,7 @@ public class PactGeneratorInvocation {
         this.providerName = providerName;
         this.requestPathWhitelist = new ArrayList<>(requestPathWhitelist);
         this.requestPathBlacklist = new ArrayList<>(requestPathBlacklist);
+        this.strictApplicationJson = strictApplicationJson;
         this.fileSystem = fileSystem;
         this.idGenerator = idGenerator;
         this.request = request;
@@ -60,45 +64,51 @@ public class PactGeneratorInvocation {
 
     public PactGeneratorInvocation withConsumer(final String consumerName) {
         return new PactGeneratorInvocation(consumerName, providerName, requestPathWhitelist, requestPathBlacklist,
-                fileSystem, idGenerator, request, response);
+                strictApplicationJson, fileSystem, idGenerator, request, response);
     }
 
     public PactGeneratorInvocation withProvider(final String providerName) {
         return new PactGeneratorInvocation(consumerName, providerName, requestPathWhitelist, requestPathBlacklist,
-                fileSystem, idGenerator, request, response);
+                strictApplicationJson, fileSystem, idGenerator, request, response);
     }
 
     public PactGeneratorInvocation withRequest(final PactGeneratorRequest request) {
         return new PactGeneratorInvocation(consumerName, providerName, requestPathWhitelist, requestPathBlacklist,
-                fileSystem, idGenerator, request, response);
+                strictApplicationJson, fileSystem, idGenerator, request, response);
     }
 
     public PactGeneratorInvocation withResponse(final PactGeneratorResponse response) {
         return new PactGeneratorInvocation(consumerName, providerName, requestPathWhitelist, requestPathBlacklist,
-                fileSystem, idGenerator, request, response);
+                strictApplicationJson, fileSystem, idGenerator, request, response);
     }
 
     public PactGeneratorInvocation withWhitelist(final String... regexPatterns) {
         final List<String> newRequestPathWhitelist = extendListWithItems(requestPathWhitelist, regexPatterns);
         return new PactGeneratorInvocation(consumerName, providerName, newRequestPathWhitelist, requestPathBlacklist,
-                fileSystem, idGenerator, request, response);
+                strictApplicationJson, fileSystem, idGenerator, request, response);
     }
 
     public PactGeneratorInvocation withBlacklist(final String... regexPatterns) {
         final List<String> newRequestPathBlacklist = extendListWithItems(requestPathBlacklist, regexPatterns);
         return new PactGeneratorInvocation(consumerName, providerName, requestPathWhitelist, newRequestPathBlacklist,
-                fileSystem, idGenerator, request, response);
+                strictApplicationJson, fileSystem, idGenerator, request, response);
+    }
+
+    public PactGeneratorInvocation withStrictApplicationJson(final boolean strictApplicationJson) {
+        return new PactGeneratorInvocation(consumerName, providerName, requestPathWhitelist, requestPathBlacklist,
+                strictApplicationJson, fileSystem, idGenerator, request, response);
     }
 
     public void invokeProcess() {
         final PactGenerator pactGenerator = createPactGenerator();
         final WireMockPactGeneratorUserOptions userOptions = new WireMockPactGeneratorUserOptions(
-                consumerName, providerName, requestPathWhitelist, requestPathBlacklist);
+                consumerName, providerName, requestPathWhitelist, requestPathBlacklist, strictApplicationJson);
 
         final PactGeneratorInteraction interaction = new PactGeneratorInteraction(
                 request,
                 response,
-                userOptions.getInteractionFilter()
+                userOptions.getInteractionFilter(),
+                userOptions.isStrictApplicationJson()
         );
         pactGenerator.process(interaction);
     }

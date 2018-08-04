@@ -3,7 +3,6 @@ package com.atlassian.ta.wiremockpactgenerator.pactgenerator;
 import com.atlassian.ta.wiremockpactgenerator.WireMockPactGeneratorException;
 import com.atlassian.ta.wiremockpactgenerator.pactgenerator.json.GsonInstance;
 import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.Pact;
-import com.google.gson.Gson;
 
 import java.text.Normalizer;
 import java.util.regex.Pattern;
@@ -11,7 +10,6 @@ import java.util.regex.Pattern;
 class PactSaver {
     private static final Pattern NON_ALPHANUMERIC = Pattern.compile("[^\\w-]");
 
-    private final Gson gson = GsonInstance.gson;
     private final FileSystem fileSystem;
     private final String uuid;
 
@@ -24,12 +22,16 @@ class PactSaver {
         return String.format("%s/%s", getPactsPath(), getPactFileName(pact, uuid));
     }
 
-    void savePactFile(final Pact pact) {
+    void savePactFile(final Pact pact, final boolean strictApplicationJson) {
         final String pactPath = getPactsPath();
         ensurePathExists(pactPath);
         final String pactFileLocation = getPactFileLocation(pact);
-        final String pactJson = gson.toJson(pact);
+        final String pactJson = serializePact(pact, strictApplicationJson);
         saveFile(pactFileLocation, pactJson);
+    }
+
+    private String serializePact(final Pact pact, final boolean strictApplicationJson) {
+        return strictApplicationJson ? GsonInstance.strictGson.toJson(pact) : GsonInstance.nonStrictGson.toJson(pact);
     }
 
     private void saveFile(final String pactFileLocation, final String pactJson) {

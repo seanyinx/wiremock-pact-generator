@@ -208,6 +208,41 @@ public class WireMockPactGeneratorTest {
     }
 
     @Test
+    public void shouldAllowNonStrictApplicationJsonSerialization() {
+        final WireMockPactGenerator pactGenerator = WireMockPactGenerator
+                .builder(uniqueName("consumer"), uniqueName("provider"))
+                .withStrictApplicationJson(false)
+                .build();
+
+        final String capturedBody = getPactGeneratorCapturedBodyFor(pactGenerator, "\"a quoted json string\"");
+
+        assertThat("interaction.request|response.body", capturedBody, equalTo("a quoted json string"));
+    }
+
+    @Test
+    public void shouldUseStrictApplicationJsonSerializationByDefault() {
+        final WireMockPactGenerator pactGenerator = WireMockPactGenerator
+                .builder(uniqueName("consumer"), uniqueName("provider"))
+                .build();
+
+        final String capturedBody = getPactGeneratorCapturedBodyFor(pactGenerator, "\"a quoted json string\"");
+
+        assertThat("interaction.request|response.body", capturedBody, equalTo("\"a quoted json string\""));
+    }
+
+    @Test
+    public void shouldAllowExplicitStrictApplicationJsonSerialization() {
+        final WireMockPactGenerator pactGenerator = WireMockPactGenerator
+                .builder(uniqueName("consumer"), uniqueName("provider"))
+                .withStrictApplicationJson(true)
+                .build();
+
+        final String capturedBody = getPactGeneratorCapturedBodyFor(pactGenerator, "\"a quoted json string\"");
+
+        assertThat("interaction.request|response.body", capturedBody, equalTo("\"a quoted json string\""));
+    }
+
+    @Test
     public void shouldGenerateAnInteractionEvenWhenTheRequestDoesNotMatchAnyWireMockStubbing() {
         final WireMockPactGenerator wireMockPactGenerator = WireMockPactGenerator
                 .builder(uniqueName("consumer"), uniqueName("provider")).build();
@@ -285,6 +320,28 @@ public class WireMockPactGeneratorTest {
                 .body("some content")
                 .getHttpRequest()
         );
+    }
+
+    private String getPactGeneratorCapturedBodyFor(final WireMockPactGenerator pactGenerator, final String body) {
+        final ResponseDefinitionBuilder responseDefinition = aResponse()
+                .withBody(body);
+
+        withWireMock(pactGenerator,
+            wireMockServer -> givenAStubForAnyPostWithResponse(wireMockServer, responseDefinition),
+            wireMockServer -> performRequest(
+                Unirest.post(urlForPath(wireMockServer, "/path/resource"))
+                    .body(body)
+                    .getHttpRequest()
+            )
+        );
+
+        final Pact pact = loadPact(pactGenerator.getPactLocation());
+
+        final PactInteraction interaction = pact.getInteractions().get(0);
+        final PactRequest request = interaction.getRequest();
+        final PactResponse response = interaction.getResponse();
+        assertThat("request equals response body", request.getBody().getValue(), equalTo(response.getBody().getValue()));
+        return request.getBody().getValue();
     }
 
     private void givenAStubForAnyPost(final WireMockServer wireMockServer) {
