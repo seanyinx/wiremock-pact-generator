@@ -1,3 +1,13 @@
+<a name="2.1.0"></a>
+# [2.1.0](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v2.0.0...v2.1.0) (2018-08-05)
+
+
+### Features
+
+* support for non-strict application/json serialization ([387531c](https://bitbucket.org/atlassian/wiremock-pact-generator/commits/387531c))
+
+
+
 <a name="2.0.0"></a>
 # [2.0.0](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v1.2.0...v2.0.0) (2018-03-20)
 
