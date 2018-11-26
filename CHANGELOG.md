@@ -1,3 +1,13 @@
+<a name="2.2.0"></a>
+# [2.2.0](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v2.1.0...v2.2.0) (2018-11-26)
+
+
+### Features
+
+* Ignore debug headers added by WireMock 2.19.0+ ([a332315](https://bitbucket.org/atlassian/wiremock-pact-generator/commits/a332315))
+
+
+
 <a name="2.1.0"></a>
 # [2.1.0](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v2.0.0...v2.1.0) (2018-08-05)
 
