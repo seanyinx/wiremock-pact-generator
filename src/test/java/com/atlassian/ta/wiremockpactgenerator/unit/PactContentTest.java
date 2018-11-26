@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -376,6 +377,23 @@ public class PactContentTest {
         final Map<String, String> responseHeaders = pactFileSpy.firstResponseHeaders();
         assertThat(responseHeaders.values(), hasSize(1));
         assertThat(responseHeaders.get("x-header"), equalTo("value 1, value 2, value 3"));
+    }
+
+    @Test
+    public void shouldExcludeWireMockDebugResponseHeaders() {
+        pactGeneratorInvocation
+                .withResponse(
+                        aDefaultResponse()
+                                .withHeaders(
+                                        new HeadersBuilder()
+                                                .withHeader("content-type", "application/json")
+                                                .withHeader("Matched-Stub-Id", "test-stub-id")
+                                                .withHeader("Matched-Stub-Name", "Test Stub Name")
+                                                .build())
+                                .build())
+                .invokeProcess();
+
+        assertThat(pactFileSpy.firstResponseHeaders().keySet(), equalTo(Collections.singleton("content-type")));
     }
 
     @Test

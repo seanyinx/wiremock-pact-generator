@@ -5,6 +5,7 @@ import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.PactRequest;
 import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.PactResponse;
 
 import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -13,8 +14,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PactGeneratorToPactInteractionTransformer {
+    private static final String WIREMOCK_MATCHED_STUB_ID_HEADER = "matched-stub-id";
+    private static final String WIREMOCK_MATCHED_STUB_NAME_HEADER = "matched-stub-name";
+
     private static final List<String> IGNORE_REQUEST_HEADERS = Collections.singletonList("host");
-    private static final List<String> IGNORE_RESPONSE_HEADERS = Collections.emptyList();
+    private static final List<String> IGNORE_RESPONSE_HEADERS =
+        Arrays.asList(WIREMOCK_MATCHED_STUB_ID_HEADER, WIREMOCK_MATCHED_STUB_NAME_HEADER);
 
     private PactGeneratorToPactInteractionTransformer() {
 
@@ -63,7 +68,7 @@ public class PactGeneratorToPactInteractionTransformer {
                 ));
     }
 
-    private static  String normalizeBody(final String body) {
+    private static String normalizeBody(final String body) {
         return body == null || body.isEmpty() ? null : body;
     }
 
