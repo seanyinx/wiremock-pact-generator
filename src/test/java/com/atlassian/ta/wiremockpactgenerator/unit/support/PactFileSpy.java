@@ -110,7 +110,7 @@ public class PactFileSpy {
         if (httpMessage.has("headers")) {
             httpMessage.getAsJsonObject("headers")
                     .entrySet()
-                    .forEach((entry) -> headers.put(entry.getKey(), entry.getValue().getAsString()));
+                    .forEach(entry -> headers.put(entry.getKey(), entry.getValue().getAsString()));
         }
 
         return headers;

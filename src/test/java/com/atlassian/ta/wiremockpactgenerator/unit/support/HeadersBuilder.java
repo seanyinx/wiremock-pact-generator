@@ -18,7 +18,7 @@ public class HeadersBuilder {
         headers = cloneMap(initialHeaders);
     }
 
-    public HeadersBuilder withHeader(final String name, final String ...values) {
+    public HeadersBuilder withHeader(final String name, final String...values) {
         final HeadersBuilder builder = new HeadersBuilder(headers);
         builder.addHeader(name, values);
         return builder;
@@ -28,7 +28,7 @@ public class HeadersBuilder {
         return cloneMap(headers);
     }
 
-    private void addHeader(final String name, final String ...values) {
+    private void addHeader(final String name, final String...values) {
         headers.put(name, Arrays.asList(values));
     }
 

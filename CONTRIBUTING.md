@@ -67,4 +67,4 @@ Version bumped from 0.0.1 to 0.0.2
 Push the changes.
 
 4. Once the changes are in master they will automatically be published by the following bamboo build:
-[https://engservices-bamboo.internal.atlassian.com/browse/IM-WPC](https://engservices-bamboo.internal.atlassian.com/browse/IM-WPC)
+[https://engservices-bamboo.internal.atlassian.com/browse/WPG-REL](https://engservices-bamboo.internal.atlassian.com/browse/WPG-REL)

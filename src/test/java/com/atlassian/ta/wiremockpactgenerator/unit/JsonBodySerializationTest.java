@@ -69,7 +69,7 @@ public class JsonBodySerializationTest {
     }
 
     private void setHelpersForRequest() {
-        whenHttpMessageInInteractionContainsBody = (body) ->
+        whenHttpMessageInInteractionContainsBody = body ->
                 pactGeneratorInvocation
                         .withStrictApplicationJson(isStrictApplicationJson)
                         .withRequest(
@@ -83,7 +83,7 @@ public class JsonBodySerializationTest {
     }
 
     private void setHelpersForResponse() {
-        whenHttpMessageInInteractionContainsBody = (body) ->
+        whenHttpMessageInInteractionContainsBody = body ->
                 pactGeneratorInvocation
                         .withStrictApplicationJson(isStrictApplicationJson)
                         .withResponse(
