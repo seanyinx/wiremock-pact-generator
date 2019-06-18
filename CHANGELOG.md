@@ -1,3 +1,13 @@
+<a name="2.2.1"></a>
+## [2.2.1](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v2.2.0...v2.2.1) (2019-06-18)
+
+
+### Bug Fixes
+
+* bump dependencies ([46d229c](https://bitbucket.org/atlassian/wiremock-pact-generator/commits/46d229c))
+
+
+
 <a name="2.2.0"></a>
 # [2.2.0](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v2.1.0...v2.2.0) (2018-11-26)
 
