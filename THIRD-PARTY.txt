@@ -1,8 +1,8 @@
 
-Lists of 59 third-party dependencies.
-     (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.9.8 - http://github.com/FasterXML/jackson)
-     (The Apache Software License, Version 2.0) Jackson-core (com.fasterxml.jackson.core:jackson-core:2.9.8 - https://github.com/FasterXML/jackson-core)
-     (The Apache Software License, Version 2.0) jackson-databind (com.fasterxml.jackson.core:jackson-databind:2.9.8 - http://github.com/FasterXML/jackson)
+Lists of 60 third-party dependencies.
+     (The Apache Software License, Version 2.0) Jackson-annotations (com.fasterxml.jackson.core:jackson-annotations:2.9.9 - http://github.com/FasterXML/jackson)
+     (The Apache Software License, Version 2.0) Jackson-core (com.fasterxml.jackson.core:jackson-core:2.9.9 - https://github.com/FasterXML/jackson-core)
+     (The Apache Software License, Version 2.0) jackson-databind (com.fasterxml.jackson.core:jackson-databind:2.9.9 - http://github.com/FasterXML/jackson)
      (The Apache Software License, Version 2.0) zjsonpatch (com.flipkart.zjsonpatch:zjsonpatch:0.4.4 - https://github.com/flipkart-incubator/zjsonpatch/)
      (Lesser General Public License (LGPL), version 3) (The Apache Software License, Version 2.0) null (com.github.fge:btf:1.2 - https://github.com/fge/btf)
      (Lesser General Public License (LGPL), version 3) (The Apache Software License, Version 2.0) null (com.github.fge:msg-simple:1.1 - https://github.com/fge/msg-simple)
@@ -12,7 +12,7 @@ Lists of 59 third-party dependencies.
      (Lesser General Public License (LGPL), version 3) (The Apache Software License, Version 2.0) json-schema-validator (com.github.java-json-tools:json-schema-validator:2.2.10 - https://github.com/box-metadata/json-schema-validator)
      (The Apache Software License, Version 2.0) Handlebars (com.github.jknack:handlebars:4.0.7 - https://github.com/jknack/handlebars.java/handlebars)
      (The Apache Software License, Version 2.0) Handlebars Helpers (com.github.jknack:handlebars-helpers:4.0.7 - https://github.com/jknack/handlebars.java/handlebars-helpers)
-     (The Apache Software License, Version 2.0) WireMock (com.github.tomakehurst:wiremock:2.23.2 - http://wiremock.org)
+     (The Apache Software License, Version 2.0) WireMock (com.github.tomakehurst:wiremock:2.24.0 - http://wiremock.org)
      (The Apache Software License, Version 2.0) FindBugs-jsr305 (com.google.code.findbugs:jsr305:3.0.1 - http://findbugs.sourceforge.net/)
      (The Apache Software License, Version 2.0) Gson (com.google.code.gson:gson:2.8.5 - https://github.com/google/gson/gson)
      (The Apache Software License, Version 2.0) Guava: Google Core Libraries for Java (com.google.guava:guava:20.0 - https://github.com/google/guava/guava)
@@ -24,6 +24,7 @@ Lists of 59 third-party dependencies.
      (Common Development and Distribution License (CDDL) v1.0) JavaBeans Activation Framework (JAF) (javax.activation:activation:1.1 - http://java.sun.com/products/javabeans/jaf/index.jsp)
      (Common Development and Distribution License (CDDL) v1.0) (GPLv2+CE) JavaMail API jar (javax.mail:mailapi:1.4.3 - http://java.sun.com/projects/javamail/mailapi)
      (CDDL + GPLv2 with classpath exception) Java Servlet API (javax.servlet:javax.servlet-api:3.1.0 - http://servlet-spec.java.net)
+     (CDDL 1.1) (GPL2 w/ CPE) jaxb-api (javax.xml.bind:jaxb-api:2.3.0 - https://github.com/javaee/jaxb-spec/jaxb-api)
      (The Apache Software License, Version 2.0) Joda-Time (joda-time:joda-time:2.9.7 - http://www.joda.org/joda-time/)
      (Eclipse Public License 1.0) JUnit (junit:junit:4.12 - http://junit.org)
      (The Apache Software License, Version 2.0) Byte Buddy (without dependencies) (net.bytebuddy:byte-buddy:1.9.10 - http://bytebuddy.net/byte-buddy)
@@ -51,7 +52,7 @@ Lists of 59 third-party dependencies.
      (BSD Licence 3) Hamcrest (org.hamcrest:hamcrest:2.1 - http://hamcrest.org/JavaHamcrest/)
      (BSD 3-Clause) Hamcrest Core (org.hamcrest:hamcrest-core:1.3 - https://github.com/hamcrest/JavaHamcrest/hamcrest-core)
      (The JSON License) JSON in Java (org.json:json:20160212 - https://github.com/douglascrockford/JSON-java)
-     (The MIT License (MIT)) mockito-core (org.mockito:mockito-core:2.28.2 - https://github.com/mockito/mockito)
+     (The MIT License (MIT)) mockito-core (org.mockito:mockito-core:3.0.0 - https://github.com/mockito/mockito)
      (Mozilla Public License, Version 2.0) Mozilla Rhino (org.mozilla:rhino:1.7.7.1 - https://developer.mozilla.org/en/Rhino)
      (The Apache Software License, Version 2.0) Objenesis (org.objenesis:objenesis:2.6 - http://objenesis.org)
      (BSD 3-Clause) asm (org.ow2.asm:asm:7.0 - http://asm.ow2.org/)

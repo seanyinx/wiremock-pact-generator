@@ -1,3 +1,13 @@
+<a name="2.3.0"></a>
+# [2.3.0](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v2.2.1...v2.3.0) (2019-07-24)
+
+
+### Features
+
+* enable ability to whitelist headers ([fb75a92](https://bitbucket.org/atlassian/wiremock-pact-generator/commits/fb75a92))
+
+
+
 <a name="2.2.1"></a>
 ## [2.2.1](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v2.2.0...v2.2.1) (2019-06-18)
 
