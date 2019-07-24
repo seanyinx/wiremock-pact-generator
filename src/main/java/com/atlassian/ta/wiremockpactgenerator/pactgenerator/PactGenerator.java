@@ -27,7 +27,7 @@ public class PactGenerator {
         }
 
         PactGeneratorValidation.validateResponse(response);
-        final PactInteraction pactInteraction = PactGeneratorToPactInteractionTransformer.transform(request, response);
+        final PactInteraction pactInteraction = PactGeneratorToPactInteractionTransformer.transform(request, response, interaction.getContentFilter());
         pact.addInteraction(pactInteraction);
         pactSaver.savePactFile(pact, interaction.isStrictApplicationJson());
     }

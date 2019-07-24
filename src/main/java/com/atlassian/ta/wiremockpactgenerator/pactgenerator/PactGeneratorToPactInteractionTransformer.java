@@ -5,52 +5,45 @@ import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.PactRequest;
 import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.PactResponse;
 
 import java.util.AbstractMap;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class PactGeneratorToPactInteractionTransformer {
-    private static final String WIREMOCK_MATCHED_STUB_ID_HEADER = "matched-stub-id";
-    private static final String WIREMOCK_MATCHED_STUB_NAME_HEADER = "matched-stub-name";
-
-    private static final List<String> IGNORE_REQUEST_HEADERS = Collections.singletonList("host");
-    private static final List<String> IGNORE_RESPONSE_HEADERS =
-        Arrays.asList(WIREMOCK_MATCHED_STUB_ID_HEADER, WIREMOCK_MATCHED_STUB_NAME_HEADER);
 
     private PactGeneratorToPactInteractionTransformer() {
 
     }
 
-    public static PactInteraction transform(final PactGeneratorRequest request, final PactGeneratorResponse response) {
-        final PactRequest pactRequest = toPactRequest(request);
-        final PactResponse pactResponse = toPactResponse(response);
+    public static PactInteraction transform(final PactGeneratorRequest request, final PactGeneratorResponse response, final ContentFilter contentFilter) {
+        final PactRequest pactRequest = toPactRequest(request, contentFilter);
+        final PactResponse pactResponse = toPactResponse(response, contentFilter);
         final String description = getDescription(pactRequest, pactResponse);
         return new PactInteraction(description, pactRequest, pactResponse);
     }
 
-    private static PactRequest toPactRequest(final PactGeneratorRequest request) {
+    private static PactRequest toPactRequest(final PactGeneratorRequest request, final ContentFilter contentFilter) {
         return new PactRequest(
                 request.getMethod().toUpperCase(),
                 request.getPath(),
                 request.getQuery(),
-                getProcessedHeaders(request.getHeaders(), IGNORE_REQUEST_HEADERS),
+                getProcessedHeaders(request.getHeaders(), header -> contentFilter.isRequestHeaderWhitelisted(header.getKey())),
                 normalizeBody(request.getBody()));
     }
 
-    private static PactResponse toPactResponse(final PactGeneratorResponse response) {
+    private static PactResponse toPactResponse(final PactGeneratorResponse response, final ContentFilter contentFilter) {
         return new PactResponse(
                 response.getStatus(),
-                getProcessedHeaders(response.getHeaders(), IGNORE_RESPONSE_HEADERS),
+                getProcessedHeaders(response.getHeaders(), header -> contentFilter.isResponseHeaderWhitelisted(header.getKey())),
                 normalizeBody(response.getBody()),
                 response.isConfigured());
     }
 
     private static Map<String, String> getProcessedHeaders(final Map<String, List<String>> rawHeaders,
-                                                           final List<String> ignoreHeaders) {
+                                                           final Predicate<AbstractMap.SimpleEntry<String, String>> headerFilter) {
         if (rawHeaders == null) {
             return new HashMap<>();
         }
@@ -61,7 +54,7 @@ public class PactGeneratorToPactInteractionTransformer {
                         header.getKey().toLowerCase(Locale.ENGLISH),
                         String.join(", ", header.getValue()))
                 )
-                .filter(header -> !ignoreHeaders.contains(header.getKey()))
+                .filter(headerFilter)
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue

@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsMapContaining.hasKey;
 
 public class PactContentTest {
     /* missing test cases
@@ -263,6 +264,22 @@ public class PactContentTest {
     }
 
     @Test
+    public void shouldCaptureRequestHostHeaderIfWhitelisted() {
+        pactGeneratorInvocation
+                .withRequest(
+                        aDefaultRequest()
+                                .withHeaders(
+                                        new HeadersBuilder()
+                                                .withHeader("host", "localhost:1234")
+                                                .build())
+                                .build())
+                .withRequestHeaderWhitelist("host")
+                .invokeProcess();
+
+        assertThat(pactFileSpy.firstRequestHeaders().keySet(), equalTo(new HashSet<>(Arrays.asList("host"))));
+    }
+
+    @Test
     public void shouldCombineMultipleRequestHeadersValues() {
         pactGeneratorInvocation
                 .withRequest(
@@ -274,6 +291,71 @@ public class PactContentTest {
         final Map<String, String> requestHeaders = pactFileSpy.firstRequestHeaders();
         assertThat(requestHeaders.values(), hasSize(1));
         assertThat(requestHeaders.get("x-header"), equalTo("value 1, value 2, value 3"));
+    }
+
+    @Test
+    public void shouldContainOnlyWhitelistedRequestHeadersValues() {
+        final Map<String, List<String>> headers = new HeadersBuilder()
+                .withHeader("whitelisted-header", "whitelisted-header-val")
+                .withHeader("non-whitelisted-header", "non-whitelisted-header-val")
+                .build();
+        pactGeneratorInvocation
+                .withRequestHeaderWhitelist("whitelisted-header")
+                .withRequest(
+                        aDefaultRequest()
+                                .withHeaders(headers)
+                                .build())
+                .invokeProcess();
+
+        final Map<String, String> requestHeaders = pactFileSpy.firstRequestHeaders();
+        assertThat(requestHeaders.values(), hasSize(1));
+        assertThat(requestHeaders, hasKey("whitelisted-header"));
+    }
+
+    @Test
+    public void shouldContainOnlyWhitelistedResponseHeadersValues() {
+        final Map<String, List<String>> headers = new HeadersBuilder()
+                .withHeader("whitelisted-header", "whitelisted-header-val")
+                .withHeader("non-whitelisted-header", "non-whitelisted-header-val")
+                .build();
+        pactGeneratorInvocation
+                .withResponseHeaderWhitelist("whitelisted-header")
+                .withRequest(aDefaultRequest().build())
+                .withResponse(
+                        aDefaultResponse()
+                                .withHeaders(headers)
+                                .build()
+                )
+                .invokeProcess();
+
+        final Map<String, String> responseHeaders = pactFileSpy.firstResponseHeaders();
+        assertThat(responseHeaders.values(), hasSize(1));
+        assertThat(responseHeaders, hasKey("whitelisted-header"));
+    }
+
+    @Test
+    public void shouldWhitelistResponseHeadersValuesAndIgnoreCase() {
+        final Map<String, List<String>> headers = new HeadersBuilder()
+                .withHeader("Whitelisted-Request-Header", "whitelisted-request-header-val")
+                .withHeader("Whitelisted-Response-Header", "whitelisted-response-header-val")
+                .build();
+        pactGeneratorInvocation
+                .withRequestHeaderWhitelist("whitelisted-request-header")
+                .withResponseHeaderWhitelist("whitelisted-response-header")
+                .withRequest(aDefaultRequest().withHeaders(headers).build())
+                .withResponse(
+                        aDefaultResponse()
+                                .withHeaders(headers)
+                                .build()
+                )
+                .invokeProcess();
+
+        final Map<String, String> responseHeaders = pactFileSpy.firstResponseHeaders();
+        final Map<String, String> requestHeaders = pactFileSpy.firstRequestHeaders();
+        assertThat(requestHeaders.values(), hasSize(1));
+        assertThat(requestHeaders, hasKey("whitelisted-request-header"));
+        assertThat(responseHeaders.values(), hasSize(1));
+        assertThat(responseHeaders, hasKey("whitelisted-response-header"));
     }
 
     @Test
@@ -394,6 +476,23 @@ public class PactContentTest {
                 .invokeProcess();
 
         assertThat(pactFileSpy.firstResponseHeaders().keySet(), equalTo(Collections.singleton("content-type")));
+    }
+
+    @Test
+    public void shouldIncludeWireMockDebugResponseHeadersIfWhitelisted() {
+        pactGeneratorInvocation
+                .withResponse(
+                        aDefaultResponse()
+                                .withHeaders(
+                                        new HeadersBuilder()
+                                                .withHeader("Matched-Stub-Id", "test-stub-id")
+                                                .withHeader("Matched-Stub-Name", "Test Stub Name")
+                                                .build())
+                                .build())
+                .withResponseHeaderWhitelist("Matched-Stub-Id")
+                .invokeProcess();
+
+        assertThat(pactFileSpy.firstResponseHeaders().keySet(), equalTo(Collections.singleton("matched-stub-id")));
     }
 
     @Test

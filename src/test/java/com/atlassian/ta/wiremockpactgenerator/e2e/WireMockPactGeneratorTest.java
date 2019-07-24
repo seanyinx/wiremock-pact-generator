@@ -17,6 +17,7 @@ import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 import com.mashape.unirest.http.Unirest;
@@ -30,6 +31,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -300,6 +302,64 @@ public class WireMockPactGeneratorTest {
                         "/valid/.*",
                         "*/invalid")
                 .build();
+    }
+
+    @Test
+    public void shouldApplyRequestHeadersWhitelists_whenMultipleListsArePassed() {
+        final WireMockPactGenerator wireMockPactGenerator = WireMockPactGenerator
+                .builder(uniqueName("consumer"), uniqueName("provider"))
+                .withRequestHeaderWhitelist("in-whitelisted-header-1")
+                .withRequestHeaderWhitelist("in-whitelisted-header-2", "in-whitelisted-header-3")
+                .build();
+
+        withWireMock(wireMockPactGenerator,
+            wireMockServer -> givenAStubForAnyPostWithResponse(wireMockServer, aResponse()),
+            wireMockServer -> performRequest(
+                     Unirest.post(urlForPath(wireMockServer, "/path/resource"))
+                            .header("in-whitelisted-header-1", "header-1-val")
+                            .header("in-whitelisted-header-2", "header-2-val")
+                            .header("in-whitelisted-header-3", "header-3-val")
+                            .header("not-in-whitelisted-header-4", "header-4-val")
+                            .getHttpRequest()
+             )
+        );
+
+        final Pact pact = loadPact(wireMockPactGenerator.getPactLocation());
+        assertThat(pact.getInteractions(), hasSize(1));
+        assertThat(pact.getInteractions().get(0).getRequest().getHeaders().keySet(),
+                   equalTo(ImmutableSet.of("in-whitelisted-header-1", "in-whitelisted-header-2", "in-whitelisted-header-3")));
+        assertThat(
+                new HashSet<>(pact.getInteractions().get(0).getRequest().getHeaders().values()),
+                equalTo(ImmutableSet.of("header-1-val", "header-2-val", "header-3-val")));
+    }
+
+    @Test
+    public void shouldApplyResponseHeadersWhitelists_whenMultipleListsArePassed() {
+        final WireMockPactGenerator wireMockPactGenerator = WireMockPactGenerator
+                .builder(uniqueName("consumer"), uniqueName("provider"))
+                .withResponseHeaderWhitelist("in-whitelisted-header-1")
+                .withResponseHeaderWhitelist("in-whitelisted-header-2", "in-whitelisted-header-3")
+                .build();
+
+        final ResponseDefinitionBuilder responseDefinition = aResponse()
+                .withHeader("in-whitelisted-header-1", "header-1-val")
+                .withHeader("in-whitelisted-header-2", "header-2-val")
+                .withHeader("in-whitelisted-header-3", "header-3-val")
+                .withHeader("not-in-whitelisted-header-4", "header-4-val");
+
+        withWireMock(wireMockPactGenerator,
+            wireMockServer -> givenAStubForAnyPostWithResponse(wireMockServer, responseDefinition),
+            wireMockServer -> performRequest(
+                     Unirest.post(urlForPath(wireMockServer, "/path/resource")).getHttpRequest()
+             )
+        );
+
+        final Pact pact = loadPact(wireMockPactGenerator.getPactLocation());
+        assertThat(pact.getInteractions(), hasSize(1));
+        assertThat(pact.getInteractions().get(0).getResponse().getHeaders().keySet(),
+                   equalTo(ImmutableSet.of("in-whitelisted-header-1", "in-whitelisted-header-2", "in-whitelisted-header-3")));
+        assertThat(new HashSet<>(pact.getInteractions().get(0).getResponse().getHeaders().values()),
+                   equalTo(ImmutableSet.of("header-1-val", "header-2-val", "header-3-val")));
     }
 
     private String uniqueName(final String prefix) {

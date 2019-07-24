@@ -113,6 +113,20 @@ those cases you can configure WireMock Pact Generator to allow serialization of 
 When strict application/json is disabled, the above examples will be serialized as a boolean, null, a number, a string
 without the quotes.
 
+### Whitelist request/response headers
+
+You can define what request/response headers should be recorded in the interactions by providing a whitelist of header names (case insensitive). 
+
+By default, if no whitelist is provided, all headers are captured.
+
+```java
+    WireMockPactGenerator
+        .builder("myConsumer", "myProvider")
+        .withRequestHeaderWhitelist("header-1", "header-2")
+        .withResponseHeaderWhitelist("header-3")
+        .build()
+```
+
 ## Changelog
 See [CHANGELOG.md](CHANGELOG.md)
 

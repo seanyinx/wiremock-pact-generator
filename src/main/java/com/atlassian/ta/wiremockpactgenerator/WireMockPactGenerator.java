@@ -3,8 +3,8 @@ package com.atlassian.ta.wiremockpactgenerator;
 import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactGeneratorRegistry;
 import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactGeneratorRequest;
 import com.atlassian.ta.wiremockpactgenerator.pactgenerator.PactGeneratorResponse;
-import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
+import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.http.RequestListener;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.Response;
@@ -77,40 +77,57 @@ public class WireMockPactGenerator implements RequestListener {
         private final String consumerName;
         private final String providerName;
         private final boolean strictApplicationJson;
+        private final List<String> requestHeaderWhitelist;
+        private final List<String> responseHeaderWhitelist;
 
         private Builder(final String consumerName, final String providerName) {
-            this(consumerName, providerName, Collections.emptyList(), Collections.emptyList(), true);
+            this(consumerName, providerName, Collections.emptyList(), Collections.emptyList(), true, Collections.emptyList(), Collections.emptyList());
         }
 
         private Builder(final String consumerName,
                         final String providerName,
                         final List<String> requestPathWhitelist,
                         final List<String> requestPathBlacklist,
-                        final boolean strictApplicationJson) {
+                        final boolean strictApplicationJson,
+                        final List<String> requestHeaderWhitelist,
+                        final List<String> responseHeaderWhitelist
+        ) {
             this.consumerName = consumerName;
             this.providerName = providerName;
             this.requestPathWhitelist = requestPathWhitelist;
             this.requestPathBlacklist = requestPathBlacklist;
             this.strictApplicationJson = strictApplicationJson;
+            this.requestHeaderWhitelist = requestHeaderWhitelist;
+            this.responseHeaderWhitelist = responseHeaderWhitelist;
         }
 
         public Builder withRequestPathWhitelist(final String... regexPatterns) {
             final List<String> newRequestPathWhitelist = extendListWithItems(requestPathWhitelist, regexPatterns);
-            return new Builder(consumerName, providerName, newRequestPathWhitelist, requestPathBlacklist, strictApplicationJson);
+            return new Builder(consumerName, providerName, newRequestPathWhitelist, requestPathBlacklist, strictApplicationJson, requestHeaderWhitelist, responseHeaderWhitelist);
         }
 
         public Builder withRequestPathBlacklist(final String... regexPatterns) {
             final List<String> newRequestPathBlacklist = extendListWithItems(requestPathBlacklist, regexPatterns);
-            return new Builder(consumerName, providerName, requestPathWhitelist, newRequestPathBlacklist, strictApplicationJson);
+            return new Builder(consumerName, providerName, requestPathWhitelist, newRequestPathBlacklist, strictApplicationJson, requestHeaderWhitelist, responseHeaderWhitelist);
         }
 
         public Builder withStrictApplicationJson(final boolean strictApplicationJson) {
-            return new Builder(consumerName, providerName, requestPathWhitelist, requestPathBlacklist, strictApplicationJson);
+            return new Builder(consumerName, providerName, requestPathWhitelist, requestPathBlacklist, strictApplicationJson, requestHeaderWhitelist, responseHeaderWhitelist);
+        }
+
+        public Builder withRequestHeaderWhitelist(final String... httpHeaders) {
+            final List<String> newRequestHeaderWhitelist = extendListWithItems(requestHeaderWhitelist, httpHeaders);
+            return new Builder(consumerName, providerName, requestPathWhitelist, requestPathBlacklist, strictApplicationJson, newRequestHeaderWhitelist, responseHeaderWhitelist);
+        }
+
+        public Builder withResponseHeaderWhitelist(final String... httpHeaders) {
+            final List<String> newResponseHeaderWhitelist = extendListWithItems(responseHeaderWhitelist, httpHeaders);
+            return new Builder(consumerName, providerName, requestPathWhitelist, requestPathBlacklist, strictApplicationJson, requestHeaderWhitelist, newResponseHeaderWhitelist);
         }
 
         public WireMockPactGenerator build() {
             final WireMockPactGeneratorUserOptions userOptions = new WireMockPactGeneratorUserOptions(
-                    consumerName, providerName, requestPathWhitelist, requestPathBlacklist, strictApplicationJson);
+                    consumerName, providerName, requestPathWhitelist, requestPathBlacklist, strictApplicationJson, requestHeaderWhitelist, responseHeaderWhitelist);
             return new WireMockPactGenerator(userOptions);
         }
 

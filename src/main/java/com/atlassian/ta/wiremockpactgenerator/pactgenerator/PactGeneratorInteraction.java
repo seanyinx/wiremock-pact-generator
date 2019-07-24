@@ -5,17 +5,20 @@ public class PactGeneratorInteraction {
     private final PactGeneratorRequest request;
     private final InteractionFilter interactionFilter;
     private final boolean strictApplicationJson;
+    private final ContentFilter contentFilter;
 
     public PactGeneratorInteraction(
             final PactGeneratorRequest request,
             final PactGeneratorResponse response,
             final InteractionFilter interactionFilter,
-            final boolean strictApplicationJson
+            final boolean strictApplicationJson,
+            final ContentFilter contentFilter
     ) {
         this.response = response;
         this.request = request;
         this.interactionFilter = interactionFilter;
         this.strictApplicationJson = strictApplicationJson;
+        this.contentFilter = contentFilter;
     }
 
     public PactGeneratorResponse getResponse() {
@@ -32,5 +35,9 @@ public class PactGeneratorInteraction {
 
     boolean isStrictApplicationJson() {
         return strictApplicationJson;
+    }
+
+    ContentFilter getContentFilter() {
+        return contentFilter;
     }
 }
