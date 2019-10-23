@@ -15,16 +15,19 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class WireMockPactGenerator implements RequestListener {
     private final WireMockPactGeneratorUserOptions userOptions;
+    private final Consumer<RuntimeException> unexpectedErrorHandler;
 
     public static Builder builder(final String consumerName, final String providerName) {
         return new Builder(consumerName, providerName);
     }
 
-    private WireMockPactGenerator(final WireMockPactGeneratorUserOptions userOptions) {
+    private WireMockPactGenerator(final WireMockPactGeneratorUserOptions userOptions, final Consumer<RuntimeException> unexpectedErrorHandler) {
         this.userOptions = userOptions;
+        this.unexpectedErrorHandler = unexpectedErrorHandler;
     }
 
     @Override
@@ -32,9 +35,7 @@ public class WireMockPactGenerator implements RequestListener {
         try {
             processInteraction(request, response);
         } catch (final RuntimeException exception) {
-            System.err.println("WireMock Pact Generator: unexpected error. Forcing system exit.");
-            exception.printStackTrace();
-            System.exit(1);
+            this.unexpectedErrorHandler.accept(exception);
         }
     }
 
@@ -72,6 +73,11 @@ public class WireMockPactGenerator implements RequestListener {
     }
 
     public static class Builder {
+        private static final Consumer<RuntimeException> defaultUnexpectedErrorHandler = e -> {
+            System.err.println("WireMock Pact Generator: unexpected error. Forcing system exit.");
+            e.printStackTrace();
+            System.exit(1);
+        };
         private final List<String> requestPathWhitelist;
         private final List<String> requestPathBlacklist;
         private final String consumerName;
@@ -79,9 +85,19 @@ public class WireMockPactGenerator implements RequestListener {
         private final boolean strictApplicationJson;
         private final List<String> requestHeaderWhitelist;
         private final List<String> responseHeaderWhitelist;
+        private final Consumer<RuntimeException> unexpectedErrorHandler;
 
         private Builder(final String consumerName, final String providerName) {
-            this(consumerName, providerName, Collections.emptyList(), Collections.emptyList(), true, Collections.emptyList(), Collections.emptyList());
+            this(
+                consumerName,
+                providerName,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                true,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                defaultUnexpectedErrorHandler
+            );
         }
 
         private Builder(final String consumerName,
@@ -90,7 +106,8 @@ public class WireMockPactGenerator implements RequestListener {
                         final List<String> requestPathBlacklist,
                         final boolean strictApplicationJson,
                         final List<String> requestHeaderWhitelist,
-                        final List<String> responseHeaderWhitelist
+                        final List<String> responseHeaderWhitelist,
+                        final Consumer<RuntimeException> unexpectedErrorHandler
         ) {
             this.consumerName = consumerName;
             this.providerName = providerName;
@@ -99,36 +116,102 @@ public class WireMockPactGenerator implements RequestListener {
             this.strictApplicationJson = strictApplicationJson;
             this.requestHeaderWhitelist = requestHeaderWhitelist;
             this.responseHeaderWhitelist = responseHeaderWhitelist;
+            this.unexpectedErrorHandler = unexpectedErrorHandler;
         }
 
         public Builder withRequestPathWhitelist(final String... regexPatterns) {
             final List<String> newRequestPathWhitelist = extendListWithItems(requestPathWhitelist, regexPatterns);
-            return new Builder(consumerName, providerName, newRequestPathWhitelist, requestPathBlacklist, strictApplicationJson, requestHeaderWhitelist, responseHeaderWhitelist);
+            return new Builder(
+                consumerName,
+                providerName,
+                newRequestPathWhitelist,
+                requestPathBlacklist,
+                strictApplicationJson,
+                requestHeaderWhitelist,
+                responseHeaderWhitelist,
+                unexpectedErrorHandler
+            );
         }
 
         public Builder withRequestPathBlacklist(final String... regexPatterns) {
             final List<String> newRequestPathBlacklist = extendListWithItems(requestPathBlacklist, regexPatterns);
-            return new Builder(consumerName, providerName, requestPathWhitelist, newRequestPathBlacklist, strictApplicationJson, requestHeaderWhitelist, responseHeaderWhitelist);
+            return new Builder(
+                consumerName,
+                providerName,
+                requestPathWhitelist,
+                newRequestPathBlacklist,
+                strictApplicationJson,
+                requestHeaderWhitelist,
+                responseHeaderWhitelist,
+                unexpectedErrorHandler
+            );
         }
 
         public Builder withStrictApplicationJson(final boolean strictApplicationJson) {
-            return new Builder(consumerName, providerName, requestPathWhitelist, requestPathBlacklist, strictApplicationJson, requestHeaderWhitelist, responseHeaderWhitelist);
+            return new Builder(
+                consumerName,
+                providerName,
+                requestPathWhitelist,
+                requestPathBlacklist,
+                strictApplicationJson,
+                requestHeaderWhitelist,
+                responseHeaderWhitelist,
+                unexpectedErrorHandler
+            );
         }
 
         public Builder withRequestHeaderWhitelist(final String... httpHeaders) {
             final List<String> newRequestHeaderWhitelist = extendListWithItems(requestHeaderWhitelist, httpHeaders);
-            return new Builder(consumerName, providerName, requestPathWhitelist, requestPathBlacklist, strictApplicationJson, newRequestHeaderWhitelist, responseHeaderWhitelist);
+            return new Builder(
+                consumerName,
+                providerName,
+                requestPathWhitelist,
+                requestPathBlacklist,
+                strictApplicationJson,
+                newRequestHeaderWhitelist,
+                responseHeaderWhitelist,
+                unexpectedErrorHandler
+            );
         }
 
         public Builder withResponseHeaderWhitelist(final String... httpHeaders) {
             final List<String> newResponseHeaderWhitelist = extendListWithItems(responseHeaderWhitelist, httpHeaders);
-            return new Builder(consumerName, providerName, requestPathWhitelist, requestPathBlacklist, strictApplicationJson, requestHeaderWhitelist, newResponseHeaderWhitelist);
+            return new Builder(
+                consumerName,
+                providerName,
+                requestPathWhitelist,
+                requestPathBlacklist,
+                strictApplicationJson,
+                requestHeaderWhitelist,
+                newResponseHeaderWhitelist,
+                unexpectedErrorHandler
+            );
+        }
+
+        public Builder withUnexpectedErrorHandler(final Consumer<RuntimeException> unexpectedErrorHandler) {
+            return new Builder(
+                consumerName,
+                providerName,
+                requestPathWhitelist,
+                requestPathBlacklist,
+                strictApplicationJson,
+                requestHeaderWhitelist,
+                responseHeaderWhitelist,
+                unexpectedErrorHandler
+            );
         }
 
         public WireMockPactGenerator build() {
             final WireMockPactGeneratorUserOptions userOptions = new WireMockPactGeneratorUserOptions(
-                    consumerName, providerName, requestPathWhitelist, requestPathBlacklist, strictApplicationJson, requestHeaderWhitelist, responseHeaderWhitelist);
-            return new WireMockPactGenerator(userOptions);
+                consumerName,
+                providerName,
+                requestPathWhitelist,
+                requestPathBlacklist,
+                strictApplicationJson,
+                requestHeaderWhitelist,
+                responseHeaderWhitelist
+            );
+            return new WireMockPactGenerator(userOptions, unexpectedErrorHandler);
         }
 
         private <T> List<T> extendListWithItems(final List<T> original, final T[] items) {

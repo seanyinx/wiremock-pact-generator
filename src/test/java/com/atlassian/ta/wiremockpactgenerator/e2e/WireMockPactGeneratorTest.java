@@ -31,7 +31,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -41,6 +43,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
@@ -360,6 +363,21 @@ public class WireMockPactGeneratorTest {
                    equalTo(ImmutableSet.of("in-whitelisted-header-1", "in-whitelisted-header-2", "in-whitelisted-header-3")));
         assertThat(new HashSet<>(pact.getInteractions().get(0).getResponse().getHeaders().values()),
                    equalTo(ImmutableSet.of("header-1-val", "header-2-val", "header-3-val")));
+    }
+
+    @Test
+    public void shouldInvokeTheGivenErrorHandlerInsteadOfSystemExit() {
+        final List<RuntimeException> handlerCalls = new ArrayList<>();
+
+        final WireMockPactGenerator pactGenerator = WireMockPactGenerator
+                .builder("consumer", "provider")
+                .withUnexpectedErrorHandler(handlerCalls::add)
+                .build();
+
+        pactGenerator.requestReceived(null, null);
+
+        assertThat(handlerCalls, hasSize(1));
+        assertThat(handlerCalls.get(0), instanceOf(NullPointerException.class));
     }
 
     private String uniqueName(final String prefix) {
