@@ -1,3 +1,13 @@
+<a name="2.4.0"></a>
+# [2.4.0](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v2.3.0...v2.4.0) (2019-11-01)
+
+
+### Features
+
+* support for custom error handlers instead of system.exit ([8c8b2e1](https://bitbucket.org/atlassian/wiremock-pact-generator/commits/8c8b2e1))
+
+
+
 <a name="2.3.0"></a>
 # [2.3.0](https://bitbucket.org/atlassian/wiremock-pact-generator/compare/v2.2.1...v2.3.0) (2019-07-24)
 
