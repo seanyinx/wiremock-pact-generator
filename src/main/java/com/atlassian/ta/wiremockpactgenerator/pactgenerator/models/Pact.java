@@ -1,6 +1,7 @@
 package com.atlassian.ta.wiremockpactgenerator.pactgenerator.models;
 
 import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,7 @@ public class Pact {
     private final PactCollaborator consumer;
     private final PactCollaborator provider;
     private final List<PactInteraction> interactions;
+    private final PactMetadata metadata;
 
     public List<PactInteraction> getInteractions() {
         return new ArrayList<>(interactions);
@@ -18,6 +20,7 @@ public class Pact {
         this.consumer = new PactCollaborator(consumerName);
         this.provider = new PactCollaborator(providerName);
         this.interactions = new ArrayList<>();
+        this.metadata = new PactMetadata(singletonMap("version", "3.0.0"));
     }
 
     public void addInteraction(final PactInteraction pactInteraction) {
@@ -33,5 +36,9 @@ public class Pact {
 
     public PactCollaborator getProvider() {
         return provider;
+    }
+
+    public PactMetadata getMetadata() {
+        return metadata;
     }
 }

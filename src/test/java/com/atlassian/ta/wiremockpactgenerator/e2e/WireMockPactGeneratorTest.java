@@ -192,6 +192,7 @@ public class WireMockPactGeneratorTest {
 
         assertThat("consumer", pact.getConsumer().getName(), equalTo(consumer));
         assertThat("provider", pact.getProvider().getName(), equalTo(provider));
+        assertThat("metadata", pact.getMetadata().getPactSpecification().values(), hasSize(1));
         assertThat("number of interactions", pact.getInteractions(), hasSize(1));
 
         final PactInteraction interaction = pact.getInteractions().get(0);
@@ -200,6 +201,7 @@ public class WireMockPactGeneratorTest {
         final Map<String, String> requestHeaders = request.getHeaders();
         final Map<String, String> responseHeaders = response.getHeaders();
         final PactProviderState providerState = interaction.getProviderStates().get(0);
+        final Map<String, String> pactSpecification = pact.getMetadata().getPactSpecification();
 
         assertThat("interaction.description", interaction.getDescription(), equalTo("POST /path/resource -> 200"));
         assertThat("interaction.request.method", request.getMethod(), equalTo("POST"));
@@ -212,7 +214,8 @@ public class WireMockPactGeneratorTest {
         assertThat("interaction.response.headers.content-type",
                 responseHeaders.get("content-type"), equalTo("text/plain"));
         assertThat("interaction.response.headers.x-header", responseHeaders.get("x-header"), equalTo("one, two"));
-        assertThat("interaction.description", providerState.getName(), equalTo("POST /path/resource -> 200"));
+        assertThat("interaction.providerState", providerState.getName(), equalTo("POST /path/resource -> 200"));
+        assertThat("interaction.metadata", pactSpecification.get("version"), equalTo("3.0.0"));
     }
 
     @Test

@@ -107,6 +107,17 @@ public class PactContentTest {
     }
 
     @Test
+    public void shouldIncludeMetadata() {
+        pactGeneratorInvocation
+                .withProvider("provider-name")
+                .invokeProcess();
+
+        final Map<String, String> metadata = pactFileSpy.metadata();
+        assertThat(metadata.values(), hasSize(1));
+        assertThat(metadata.get("version"), equalTo("3.0.0"));
+    }
+
+    @Test
     public void shouldCaptureTheRequestMethod() {
         pactGeneratorInvocation
                 .withRequest(

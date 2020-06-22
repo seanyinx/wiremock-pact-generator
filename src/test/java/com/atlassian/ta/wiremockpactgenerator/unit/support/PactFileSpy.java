@@ -82,6 +82,10 @@ public class PactFileSpy {
                 .getAsString();
     }
 
+    public Map<String, String> metadata() {
+        return getMetadata(getPactAsJson().getAsJsonObject("metadata"));
+    }
+
     public String jsonPact() {
         final ArgumentCaptor<String> jsonCaptor = ArgumentCaptor.forClass(String.class);
         try {
@@ -122,6 +126,18 @@ public class PactFileSpy {
         }
 
         return headers;
+    }
+
+    private Map<String, String> getMetadata(final JsonObject metadata) {
+        final Map<String, String> specifications = new HashMap<>();
+
+        if (metadata.has("pactSpecification")) {
+            metadata.getAsJsonObject("pactSpecification")
+                    .entrySet()
+                    .forEach(entry -> specifications.put(entry.getKey(), entry.getValue().getAsString()));
+        }
+
+        return specifications;
     }
 
     private JsonObject getPactAsJson() {
