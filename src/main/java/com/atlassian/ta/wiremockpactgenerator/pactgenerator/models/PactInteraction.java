@@ -37,7 +37,7 @@ public class PactInteraction {
         return providerStates;
     }
 
-    PactInteraction withProviderStates(List<PactProviderState> providerStates) {
+    PactInteraction withProviderStates(final List<PactProviderState> providerStates) {
         return new PactInteraction(description, request, response, providerStates);
     }
 }
