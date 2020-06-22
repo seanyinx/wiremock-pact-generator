@@ -523,6 +523,7 @@ public class PactContentTest {
                 .invokeProcess();
 
         assertThat(pactFileSpy.firstInteractionDescription(), equalTo("GET /path -> 202"));
+        assertThat(pactFileSpy.firstProviderState(), equalTo("GET /path -> 202"));
     }
 
     @Test
@@ -541,6 +542,7 @@ public class PactContentTest {
                 .invokeProcess();
 
         assertThat(pactFileSpy.firstInteractionDescription(), equalTo("GET /path -> 404 [Not configured in WireMock]"));
+        assertThat(pactFileSpy.firstProviderState(), equalTo("GET /path -> 404 [Not configured in WireMock]"));
     }
 
     @Test

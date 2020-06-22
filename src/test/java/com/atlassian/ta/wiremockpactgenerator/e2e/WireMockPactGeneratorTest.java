@@ -6,6 +6,7 @@ import com.atlassian.ta.wiremockpactgenerator.e2e.support.PactHttpBodyDeserializ
 import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.Pact;
 import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.PactHttpBody;
 import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.PactInteraction;
+import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.PactProviderState;
 import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.PactRequest;
 import com.atlassian.ta.wiremockpactgenerator.pactgenerator.models.PactResponse;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -198,6 +199,7 @@ public class WireMockPactGeneratorTest {
         final PactResponse response = interaction.getResponse();
         final Map<String, String> requestHeaders = request.getHeaders();
         final Map<String, String> responseHeaders = response.getHeaders();
+        final PactProviderState providerState = interaction.getProviderStates().get(0);
 
         assertThat("interaction.description", interaction.getDescription(), equalTo("POST /path/resource -> 200"));
         assertThat("interaction.request.method", request.getMethod(), equalTo("POST"));
@@ -210,6 +212,7 @@ public class WireMockPactGeneratorTest {
         assertThat("interaction.response.headers.content-type",
                 responseHeaders.get("content-type"), equalTo("text/plain"));
         assertThat("interaction.response.headers.x-header", responseHeaders.get("x-header"), equalTo("one, two"));
+        assertThat("interaction.description", providerState.getName(), equalTo("POST /path/resource -> 200"));
     }
 
     @Test

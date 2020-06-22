@@ -74,6 +74,14 @@ public class PactFileSpy {
         return firstResponse().get("body");
     }
 
+    public String firstProviderState() {
+        return getInteraction(0)
+                .getAsJsonArray("providerStates").get(0)
+                .getAsJsonObject()
+                .get("name")
+                .getAsString();
+    }
+
     public String jsonPact() {
         final ArgumentCaptor<String> jsonCaptor = ArgumentCaptor.forClass(String.class);
         try {

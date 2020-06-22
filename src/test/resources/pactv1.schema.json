@@ -13,11 +13,11 @@
         "description": {
           "type": "string"
         },
-        "providerState": {
-          "type": "string"
-        },
-        "provider_state": {
-          "type": "string"
+        "providerStates": {
+          "items": {
+            "$ref": "#/definitions/providerState"
+          },
+          "type": "array"
         },
         "request": {
           "$ref": "#/definitions/request"
@@ -104,6 +104,15 @@
         }
       },
       "required": ["status"],
+      "type": "object"
+    },
+    "providerState": {
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": ["name"],
       "type": "object"
     }
   },
