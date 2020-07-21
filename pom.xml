@@ -62,7 +62,7 @@
         <mockito.version>3.0.0</mockito.version>
         <json-schema-validator.version>2.2.10</json-schema-validator.version>
         <unirest.version>1.4.9</unirest.version>
-        <checkstyle.version>8.22</checkstyle.version>
+        <checkstyle.version>8.29</checkstyle.version>
 
         <license-maven-plugin.version>1.9</license-maven-plugin.version>
         <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
