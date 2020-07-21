@@ -1,9 +1,16 @@
 package com.atlassian.ta.wiremockpactgenerator.pactgenerator;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 
 public class PactGeneratorRequest {
     private final String method;
@@ -35,10 +42,20 @@ public class PactGeneratorRequest {
         }
     }
 
-    public String getQuery() {
+    public Map<String, List<String>> getQuery() {
         try {
-            return new URL("http", "dummyhost", getUrl()).getQuery();
-        } catch (final MalformedURLException e) {
+            final List<NameValuePair> pairs = URLEncodedUtils.parse(new URL("http", "dummyhost", getUrl()).toURI(), UTF_8);
+            if (pairs.isEmpty()) {
+                return null;
+            }
+
+            final Map<String, List<String>> queries = new HashMap<>();
+            for (NameValuePair pair : pairs) {
+                queries.computeIfAbsent(pair.getName(), k -> new ArrayList<>())
+                        .add(pair.getValue());
+            }
+            return queries;
+        } catch (final MalformedURLException | URISyntaxException e) {
             return null;
         }
     }

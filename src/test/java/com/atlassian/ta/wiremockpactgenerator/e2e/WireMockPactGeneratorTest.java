@@ -47,6 +47,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 
 public class WireMockPactGeneratorTest {
@@ -206,7 +207,7 @@ public class WireMockPactGeneratorTest {
         assertThat("interaction.description", interaction.getDescription(), equalTo("POST /path/resource -> 200"));
         assertThat("interaction.request.method", request.getMethod(), equalTo("POST"));
         assertThat("interaction.request.path", request.getPath(), equalTo("/path/resource"));
-        assertThat("interaction.request.query", request.getQuery(), equalTo("foo=bar"));
+        assertThat("interaction.request.query", request.getQuery().get("foo"), containsInAnyOrder("bar"));
         assertThat("interaction.request.body", request.getBody().getValue(), equalTo("request body"));
         assertThat("interaction.request.headers.accept", requestHeaders.get("accept"), equalTo("text/plain"));
         assertThat("interaction.response.status", response.getStatus(), equalTo(200));

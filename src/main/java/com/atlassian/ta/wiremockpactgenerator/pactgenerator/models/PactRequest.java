@@ -1,16 +1,17 @@
 package com.atlassian.ta.wiremockpactgenerator.pactgenerator.models;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PactRequest {
     private final String method;
     private final String path;
-    private final String query;
+    private final Map<String, List<String>> query;
     private final Map<String, String> headers;
     private final PactHttpBody body;
 
-    public PactRequest(final String method, final String path, final String query,
+    public PactRequest(final String method, final String path, final Map<String, List<String>> query,
                        final Map<String, String> headers, final String body) {
         this.method = method;
         this.path = path;
@@ -27,7 +28,7 @@ public class PactRequest {
         return path;
     }
 
-    public String getQuery() {
+    public Map<String, List<String>> getQuery() {
         return query;
     }
 

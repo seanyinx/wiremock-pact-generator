@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -158,11 +159,13 @@ public class PactContentTest {
         pactGeneratorInvocation
                 .withRequest(
                         aDefaultRequest()
-                                .withUrl("/path?query=string&foo=bar")
+                                .withUrl("/path?query=string&foo=bar&foo=oops")
                                 .build())
                 .invokeProcess();
 
-        assertThat(pactFileSpy.firstRequestQuery(), equalTo("query=string&foo=bar"));
+        final Map<String, List<String>> query = pactFileSpy.firstRequestQuery();
+        assertThat(query.get("query"), containsInAnyOrder("string"));
+        assertThat(query.get("foo"), containsInAnyOrder("bar", "oops"));
     }
 
     @Test
@@ -175,7 +178,7 @@ public class PactContentTest {
                 .invokeProcess();
 
         assertThat(pactFileSpy.firstRequestPath(), equalTo("/some/path"));
-        assertThat(pactFileSpy.firstRequestQuery(), equalTo("query=string"));
+        assertThat(pactFileSpy.firstRequestQuery().get("query"), containsInAnyOrder("string"));
     }
 
     @Test

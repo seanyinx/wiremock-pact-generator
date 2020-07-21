@@ -5,6 +5,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.util.ArrayList;
+import java.util.List;
 import org.mockito.ArgumentCaptor;
 
 import java.util.HashMap;
@@ -42,8 +44,8 @@ public class PactFileSpy {
         return firstRequest().get("path").getAsString();
     }
 
-    public String firstRequestQuery() {
-        return firstRequest().get("query").getAsString();
+    public Map<String, List<String>> firstRequestQuery() {
+        return getQuery(firstRequest());
     }
 
     public Map<String, String> firstRequestHeaders() {
@@ -114,6 +116,25 @@ public class PactFileSpy {
 
     private JsonObject firstResponse() {
         return getInteraction(0).getAsJsonObject("response");
+    }
+
+    private Map<String, List<String>> getQuery(final JsonObject httpMessage) {
+        final Map<String, List<String>> queries = new HashMap<>();
+
+        if (httpMessage.has("query")) {
+            httpMessage.getAsJsonObject("query")
+                    .entrySet()
+                    .forEach(entry -> {
+                        final JsonArray jsonArray = entry.getValue().getAsJsonArray();
+                        final List<String> values = new ArrayList<>(jsonArray.size());
+                        for (JsonElement jsonElement : jsonArray) {
+                            values.add(jsonElement.getAsString());
+                        }
+                        queries.put(entry.getKey(), values);
+                    });
+        }
+
+        return queries;
     }
 
     private Map<String, String> getHeaders(final JsonObject httpMessage) {
